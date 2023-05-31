@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -28,8 +30,9 @@ using namespace std;
 namespace piper {
 
 typedef char32_t Phoneme;
+typedef map<Phoneme, vector<Phoneme>> PhonemeMap;
 
-struct eSpeakConfig {
+struct eSpeakPhonemeConfig {
   string voice = "en-us";
 
   Phoneme period = U'.';
@@ -40,17 +43,29 @@ struct eSpeakConfig {
   Phoneme semicolon = U';';
 
   bool keepLanguageFlags = false;
+
+  shared_ptr<PhonemeMap> phonemeMap;
 };
+
+// language -> phoneme -> [phoneme, ...]
+map<string, PhonemeMap> DEFAULT_PHONEME_MAP = {{"pt-br", {{U'c', {U'k'}}}}};
 
 // Text to phonemes using eSpeak-ng.
 // Assumes espeak_Initialize has already been called.
-void phonemize_eSpeak(string text, eSpeakConfig &config,
+void phonemize_eSpeak(string text, eSpeakPhonemeConfig &config,
                       vector<vector<Phoneme>> &phonemes) {
 
   auto voice = config.voice;
   int result = espeak_SetVoiceByName(voice.c_str());
   if (result != 0) {
     throw runtime_error("Failed to set eSpeak-ng voice");
+  }
+
+  shared_ptr<PhonemeMap> phonemeMap;
+  if (config.phonemeMap) {
+    phonemeMap = config.phonemeMap;
+  } else if (DEFAULT_PHONEME_MAP.count(voice) > 0) {
+    phonemeMap = make_shared<PhonemeMap>(DEFAULT_PHONEME_MAP[voice]);
   }
 
   // Modified by eSpeak
@@ -70,14 +85,36 @@ void phonemize_eSpeak(string text, eSpeakConfig &config,
     // Decompose, e.g. "ç" -> "c" + "̧"
     auto phonemesNorm = una::norm::to_nfd_utf8(clausePhonemes);
     auto phonemesRange = una::ranges::utf8_view{phonemesNorm};
-    auto phonemeIter = phonemesRange.begin();
-    auto phonemeEnd = phonemesRange.end();
 
     if (!sentencePhonemes) {
       // Start new sentence
       phonemes.emplace_back();
       sentencePhonemes = &phonemes[phonemes.size() - 1];
     }
+
+    // Maybe use phoneme map
+    vector<Phoneme> mappedSentPhonemes;
+    if (phonemeMap) {
+      for (auto phoneme : phonemesRange) {
+        if (phonemeMap->count(phoneme) < 1) {
+          // No mapping for phoneme
+          mappedSentPhonemes.push_back(phoneme);
+        } else {
+          // Mapping for phoneme
+          auto mappedPhonemes = &(phonemeMap->at(phoneme));
+          mappedSentPhonemes.insert(mappedSentPhonemes.end(),
+                                    mappedPhonemes->begin(),
+                                    mappedPhonemes->end());
+        }
+      }
+    } else {
+      // No phoneme map
+      mappedSentPhonemes.insert(mappedSentPhonemes.end(), phonemesRange.begin(),
+                                phonemesRange.end());
+    }
+
+    auto phonemeIter = mappedSentPhonemes.begin();
+    auto phonemeEnd = mappedSentPhonemes.end();
 
     if (config.keepLanguageFlags) {
       // No phoneme filter
@@ -128,6 +165,51 @@ void phonemize_eSpeak(string text, eSpeakConfig &config,
 
   } // while inputTextPointer != NULL
 
-} /* phonemize */
+} /* phonemize_eSpeak */
+
+enum TextCasing { CASING_IGNORE, CASING_LOWER, CASING_UPPER, CASING_FOLD };
+
+struct TextPhonemeConfig {
+  TextCasing casing = CASING_FOLD;
+  shared_ptr<PhonemeMap> phonemeMap;
+};
+
+void phonemize_text(string text, TextPhonemeConfig &config,
+                    vector<vector<Phoneme>> &phonemes) {
+
+  if (config.casing == CASING_LOWER) {
+    text = una::cases::to_lowercase_utf8(text);
+  } else if (config.casing == CASING_UPPER) {
+    text = una::cases::to_uppercase_utf8(text);
+  } else if (config.casing == CASING_FOLD) {
+    text = una::cases::to_casefold_utf8(text);
+  }
+
+  // Decompose, e.g. "ç" -> "c" + "̧"
+  auto phonemesNorm = una::norm::to_nfd_utf8(text);
+  auto phonemesRange = una::ranges::utf8_view{phonemesNorm};
+
+  // No sentence boundary detection
+  phonemes.emplace_back();
+  auto sentPhonemes = &phonemes[phonemes.size() - 1];
+
+  if (config.phonemeMap) {
+    for (auto phoneme : phonemesRange) {
+      if (config.phonemeMap->count(phoneme) < 1) {
+        // No mapping for phoneme
+        sentPhonemes->push_back(phoneme);
+      } else {
+        // Mapping for phoneme
+        auto mappedPhonemes = &(config.phonemeMap->at(phoneme));
+        sentPhonemes->insert(sentPhonemes->end(), mappedPhonemes->begin(),
+                             mappedPhonemes->end());
+      }
+    }
+  } else {
+    // No phoneme map
+    sentPhonemes->insert(sentPhonemes->end(), phonemesRange.begin(),
+                         phonemesRange.end());
+  }
+} // phonemize_text
 
 } // namespace piper

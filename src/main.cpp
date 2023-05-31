@@ -3,6 +3,7 @@
 
 #include <espeak-ng/speak_lib.h>
 
+#include "phoneme_ids.hpp"
 #include "phonemize.hpp"
 
 int main(int argc, char *argv[]) {
@@ -18,15 +19,23 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  piper::eSpeakConfig config;
-  config.voice = "de";
+  piper::eSpeakConfig phonemeConfig;
+  phonemeConfig.voice = "de";
   vector<vector<piper::Phoneme>> phonemes;
-  phonemize_eSpeak("licht", config, phonemes);
+  phonemize_eSpeak("licht", phonemeConfig, phonemes);
+
+  piper::PhonemeIdConfig idConfig;
 
   string phonemeStr;
   for (auto sentPhonemes : phonemes) {
-    phonemeStr = una::ranges::to_utf8<std::string>(sentPhonemes);
-    std::cout << phonemeStr << std::endl;
+    vector<piper::PhonemeId> sentIds;
+    phonemes_to_ids(sentPhonemes, idConfig, sentIds);
+
+    for (auto id : sentIds) {
+      std::cout << id << " ";
+    }
+
+    std::cout << std::endl;
   }
 
   espeak_Terminate();
