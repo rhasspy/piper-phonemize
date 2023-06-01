@@ -35,13 +35,14 @@ typedef map<Phoneme, vector<Phoneme>> PhonemeMap;
 struct eSpeakPhonemeConfig {
   string voice = "en-us";
 
-  Phoneme period = U'.';
-  Phoneme comma = U',';
-  Phoneme question = U'?';
-  Phoneme exclamation = U'!';
-  Phoneme colon = U':';
-  Phoneme semicolon = U';';
+  Phoneme period = U'.';      // CLAUSE_PERIOD
+  Phoneme comma = U',';       // CLAUSE_COMMA
+  Phoneme question = U'?';    // CLAUSE_QUESTION
+  Phoneme exclamation = U'!'; // CLAUSE_EXCLAMATION
+  Phoneme colon = U':';       // CLAUSE_COLON
+  Phoneme semicolon = U';';   // CLAUSE_SEMICOLON
 
+  // Remove language switch flags like "(en)"
   bool keepLanguageFlags = false;
 
   shared_ptr<PhonemeMap> phonemeMap;
@@ -50,7 +51,9 @@ struct eSpeakPhonemeConfig {
 // language -> phoneme -> [phoneme, ...]
 map<string, PhonemeMap> DEFAULT_PHONEME_MAP = {{"pt-br", {{U'c', {U'k'}}}}};
 
-// Text to phonemes using eSpeak-ng.
+// Phonemizes text using espeak-ng.
+// Returns phonemes for each sentence as a separate vector.
+//
 // Assumes espeak_Initialize has already been called.
 void phonemize_eSpeak(string text, eSpeakPhonemeConfig &config,
                       vector<vector<Phoneme>> &phonemes) {
@@ -167,15 +170,22 @@ void phonemize_eSpeak(string text, eSpeakPhonemeConfig &config,
 
 } /* phonemize_eSpeak */
 
+// ----------------------------------------------------------------------------
+
 enum TextCasing { CASING_IGNORE, CASING_LOWER, CASING_UPPER, CASING_FOLD };
 
-struct TextPhonemeConfig {
+// Configuration for phonemize_codepoints
+struct CodepointsPhonemeConfig {
   TextCasing casing = CASING_FOLD;
   shared_ptr<PhonemeMap> phonemeMap;
 };
 
-void phonemize_text(string text, TextPhonemeConfig &config,
-                    vector<vector<Phoneme>> &phonemes) {
+// "Phonemizes" text as a series of normalized UTF-8 codepoints.
+// Returns a single vector of "phonemes".
+//
+// Does not detect sentence boundaries.
+void phonemize_codepoints(string text, CodepointsPhonemeConfig &config,
+                          vector<vector<Phoneme>> &phonemes) {
 
   if (config.casing == CASING_LOWER) {
     text = una::cases::to_lowercase_utf8(text);

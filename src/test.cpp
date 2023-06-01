@@ -55,11 +55,13 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // Check "Весе́лка" in Ukrainian
-  piper::TextPhonemeConfig textConfig;
+  // Check "ВЕСЕ́ЛКА" in Ukrainian
+  piper::CodepointsPhonemeConfig codepointsConfig;
   phonemes.clear();
 
-  piper::phonemize_text("Весе́лка", textConfig, phonemes);
+  piper::phonemize_codepoints("ВЕСЕ́ЛКА", textConfig, phonemes);
+
+  // Case folded and NFD normalized
   vector<piper::Phoneme> expectedPhonemes = {U'в', U'е', U'с', U'е',
                                              U'́',  U'л', U'к', U'а'};
 
@@ -73,7 +75,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  idConfig.phonemeIdMap = make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET["uk"]);
+  idConfig.phonemeIdMap =
+      make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET["uk"]);
   idStr = idString(phonemes, idConfig);
   if (idStr != "1 0 14 0 18 0 33 0 18 0 45 0 27 0 26 0 12 0 2 ") {
     std::cerr << "Весе́лка: " << idStr << std::endl;
