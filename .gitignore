@@ -17,3 +17,5 @@ htmlcov
 /test
 
 espeak-ng-data/
+
+/espeak-ng/
