@@ -1,3 +1,0 @@
-[submodule "espeak-ng"]
-	path = espeak-ng
-	url = https://github.com/rhasspy/espeak-ng
