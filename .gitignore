@@ -12,9 +12,8 @@ htmlcov
 /venv/
 *.egg-info/
 
-/main
-/test
-
+/dist/
 /*.so
+/test
 
 espeak-ng-data/

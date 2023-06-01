@@ -1,0 +1,9 @@
+*
+!CMakeLists.txt
+!src/
+!setup.py
+!pyproject.toml
+!piper_phonemize/
+!LICENSE.md
+!README.md
+!MANIFEST.in
