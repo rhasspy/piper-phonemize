@@ -6,6 +6,8 @@ from piper_phonemize_cpp import (
     phonemize_codepoints,
     phoneme_ids_espeak,
     phoneme_ids_codepoints,
+    get_espeak_map,
+    get_codepoints_map,
 )
 
 _DIR = Path(__file__).parent

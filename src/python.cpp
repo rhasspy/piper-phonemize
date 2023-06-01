@@ -75,6 +75,12 @@ phoneme_ids_codepoints(std::string language,
   return phonemeIds;
 }
 
+piper::PhonemeIdMap get_espeak_map() { return piper::DEFAULT_PHONEME_ID_MAP; }
+
+std::map<std::string, piper::PhonemeIdMap> get_codepoints_map() {
+  return piper::DEFAULT_ALPHABET;
+}
+
 PYBIND11_MODULE(piper_phonemize_cpp, m) {
   m.doc() = R"pbdoc(
         Pybind11 example plugin
@@ -89,6 +95,8 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
            phonemize_codepoints
            phoneme_ids_espeak
            phoneme_ids_codepoints
+           get_espeak_map
+           get_codepoints_map
     )pbdoc";
 
   m.def("phonemize_espeak", &phonemize_espeak, R"pbdoc(
@@ -105,6 +113,14 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
 
   m.def("phoneme_ids_codepoints", &phoneme_ids_codepoints, R"pbdoc(
         Get ids for a language's codepoints
+    )pbdoc");
+
+  m.def("get_espeak_map", &get_espeak_map, R"pbdoc(
+        Get phoneme/id map for espeak-ng phonemes
+    )pbdoc");
+
+  m.def("get_codepoints_map", &get_codepoints_map, R"pbdoc(
+        Get codepoint/id map for supported languages
     )pbdoc");
 
 #ifdef VERSION_INFO
