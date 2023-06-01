@@ -17,13 +17,13 @@ namespace py = pybind11;
 // True when espeak_Initialize has been called
 bool eSpeakInitialized = false;
 
-vector<vector<piper::Phoneme>> phonemize_espeak(string text, string voice,
-                                                string dataPath) {
+std::vector<std::vector<piper::Phoneme>>
+phonemize_espeak(std::string text, std::string voice, std::string dataPath) {
   if (!eSpeakInitialized) {
     int result =
         espeak_Initialize(AUDIO_OUTPUT_SYNCHRONOUS, 0, dataPath.c_str(), 0);
     if (result < 0) {
-      throw runtime_error("Failed to initialize eSpeak");
+      throw std::runtime_error("Failed to initialize eSpeak");
     }
 
     eSpeakInitialized = true;
@@ -32,40 +32,43 @@ vector<vector<piper::Phoneme>> phonemize_espeak(string text, string voice,
   piper::eSpeakPhonemeConfig config;
   config.voice = voice;
 
-  vector<vector<piper::Phoneme>> phonemes;
+  std::vector<std::vector<piper::Phoneme>> phonemes;
   piper::phonemize_eSpeak(text, config, phonemes);
 
   return phonemes;
 }
 
-vector<vector<piper::Phoneme>> phonemize_codepoints(string text) {
+std::vector<std::vector<piper::Phoneme>>
+phonemize_codepoints(std::string text) {
   piper::CodepointsPhonemeConfig config;
-  vector<vector<piper::Phoneme>> phonemes;
+  std::vector<std::vector<piper::Phoneme>> phonemes;
 
   piper::phonemize_codepoints(text, config, phonemes);
 
   return phonemes;
 }
 
-vector<piper::PhonemeId> phoneme_ids_espeak(vector<piper::Phoneme> phonemes) {
+std::vector<piper::PhonemeId>
+phoneme_ids_espeak(std::vector<piper::Phoneme> phonemes) {
   piper::PhonemeIdConfig config;
-  vector<piper::PhonemeId> phonemeIds;
+  std::vector<piper::PhonemeId> phonemeIds;
 
   phonemes_to_ids(phonemes, config, phonemeIds);
 
   return phonemeIds;
 }
 
-vector<piper::PhonemeId>
-phoneme_ids_codepoints(string language, vector<piper::Phoneme> phonemes) {
+std::vector<piper::PhonemeId>
+phoneme_ids_codepoints(std::string language,
+                       std::vector<piper::Phoneme> phonemes) {
   if (piper::DEFAULT_ALPHABET.count(language) < 1) {
-    throw runtime_error("No phoneme/id map for language");
+    throw std::runtime_error("No phoneme/id map for language");
   }
 
   piper::PhonemeIdConfig config;
   config.phonemeIdMap =
-      make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET[language]);
-  vector<piper::PhonemeId> phonemeIds;
+      std::make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET[language]);
+  std::vector<piper::PhonemeId> phonemeIds;
 
   phonemes_to_ids(phonemes, config, phonemeIds);
 

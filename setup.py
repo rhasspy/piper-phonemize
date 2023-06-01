@@ -7,7 +7,7 @@ __version__ = "0.0.1"
 ext_modules = [
     Pybind11Extension(
         "piper_phonemize_cpp",
-        ["src/python.cpp"],
+        ["src/python.cpp", "src/phonemize.cpp", "src/phoneme_ids.cpp"],
         define_macros=[("VERSION_INFO", __version__)],
         include_dirs=["espeak-ng/build/include"],
         library_dirs=["espeak-ng/build/lib"],

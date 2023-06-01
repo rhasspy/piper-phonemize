@@ -7,11 +7,11 @@
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
 
-string idString(const vector<vector<piper::Phoneme>> &phonemes,
-                piper::PhonemeIdConfig &idConfig) {
+std::string idString(const std::vector<std::vector<piper::Phoneme>> &phonemes,
+                     piper::PhonemeIdConfig &idConfig) {
   std::stringstream idStr;
   for (auto sentPhonemes : phonemes) {
-    vector<piper::PhonemeId> sentIds;
+    std::vector<piper::PhonemeId> sentIds;
     piper::phonemes_to_ids(sentPhonemes, idConfig, sentIds);
 
     for (auto id : sentIds) {
@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 
   // Check "licht" in German
   phonemeConfig.voice = "de";
-  vector<vector<piper::Phoneme>> phonemes;
+  std::vector<std::vector<piper::Phoneme>> phonemes;
 
   // Should be "lˈɪçt!" where "ç" is decomposed into two codepoints
   piper::phonemize_eSpeak("licht!", phonemeConfig, phonemes);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   // 1 = bos
   // 2 = eos
   // 4 = !
-  string idStr = idString(phonemes, idConfig);
+  std::string idStr = idString(phonemes, idConfig);
   if (idStr != "1 0 24 0 120 0 74 0 16 0 140 0 32 0 4 0 2 ") {
     std::cerr << "licht: " << idStr << std::endl;
     return 1;
@@ -59,11 +59,11 @@ int main(int argc, char *argv[]) {
   piper::CodepointsPhonemeConfig codepointsConfig;
   phonemes.clear();
 
-  piper::phonemize_codepoints("ВЕСЕ́ЛКА", textConfig, phonemes);
+  piper::phonemize_codepoints("ВЕСЕ́ЛКА", codepointsConfig, phonemes);
 
   // Case folded and NFD normalized
-  vector<piper::Phoneme> expectedPhonemes = {U'в', U'е', U'с', U'е',
-                                             U'́',  U'л', U'к', U'а'};
+  std::vector<piper::Phoneme> expectedPhonemes = {U'в', U'е', U'с', U'е',
+                                                  U'́',  U'л', U'к', U'а'};
 
   if (phonemes[0] != expectedPhonemes) {
     std::cerr << "Весе́лка: ";
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
   }
 
   idConfig.phonemeIdMap =
-      make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET["uk"]);
+      std::make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET["uk"]);
   idStr = idString(phonemes, idConfig);
   if (idStr != "1 0 14 0 18 0 33 0 18 0 45 0 27 0 26 0 12 0 2 ") {
     std::cerr << "Весе́лка: " << idStr << std::endl;
