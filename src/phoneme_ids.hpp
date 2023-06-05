@@ -2,7 +2,7 @@
 #define PHONEME_IDS_H_
 
 #include <map>
-#include <optional>
+#include <string>
 #include <vector>
 
 #include "phonemize.hpp"
@@ -26,20 +26,19 @@ struct PhonemeIdConfig {
   // Add end of sentence (eos) symbol at end
   bool addEos = true;
 
-  // Ignore phonemes that are not in the phoneme/id map
-  bool skipMissingPhonemes = true;
-
   // Map from phonemes to phoneme id(s).
   // Not set means to use DEFAULT_PHONEME_ID_MAP.
   std::shared_ptr<PhonemeIdMap> phonemeIdMap;
 };
 
+extern const size_t MAX_PHONEMES;
 extern PhonemeIdMap DEFAULT_PHONEME_ID_MAP;
 extern std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET;
 
 void phonemes_to_ids(const std::vector<Phoneme> &phonemes,
                      PhonemeIdConfig &config,
-                     std::vector<PhonemeId> &phonemeIds);
+                     std::vector<PhonemeId> &phonemeIds,
+                     std::map<Phoneme, std::size_t> &missingPhonemes);
 
 } // namespace piper
 

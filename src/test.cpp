@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <vector>
 
@@ -9,10 +10,11 @@
 
 std::string idString(const std::vector<std::vector<piper::Phoneme>> &phonemes,
                      piper::PhonemeIdConfig &idConfig) {
+  std::map<piper::Phoneme, std::size_t> missingPhonemes;
   std::stringstream idStr;
   for (auto sentPhonemes : phonemes) {
     std::vector<piper::PhonemeId> sentIds;
-    piper::phonemes_to_ids(sentPhonemes, idConfig, sentIds);
+    piper::phonemes_to_ids(sentPhonemes, idConfig, sentIds, missingPhonemes);
 
     for (auto id : sentIds) {
       idStr << id << " ";
@@ -80,6 +82,36 @@ int main(int argc, char *argv[]) {
   idStr = idString(phonemes, idConfig);
   if (idStr != "1 0 14 0 18 0 33 0 18 0 45 0 27 0 26 0 12 0 2 ") {
     std::cerr << "Весе́лка: " << idStr << std::endl;
+    return 1;
+  }
+
+  // --------------------------------------------------------------------------
+
+  // Check missing phoneme
+  phonemes.clear();
+  phonemes.emplace_back();
+  phonemes[0].push_back(0);
+  phonemes[0].push_back(0);
+  phonemes[0].push_back(0);
+
+  std::vector<piper::PhonemeId> missingIds;
+  std::map<piper::Phoneme, std::size_t> missingPhonemes;
+  piper::phonemes_to_ids(phonemes[0], idConfig, missingIds, missingPhonemes);
+
+  if (missingPhonemes.size() != 1) {
+    std::cerr << "Expected 1 missing phoneme, got " << missingPhonemes.size()
+              << std::endl;
+    return 1;
+  }
+
+  if (missingPhonemes.count(0) < 1) {
+    std::cerr << "Expected '0' to be a missing phoneme" << std::endl;
+    return 1;
+  }
+
+  if (missingPhonemes[0] != 3) {
+    std::cerr << "Missing count for '0' phoneme: " << missingPhonemes[0]
+              << " != 3" << std::endl;
     return 1;
   }
 

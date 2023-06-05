@@ -13,6 +13,8 @@ See `src/test.cpp` for a C++ example.
 
 The `piper_phonemize` Python package is built using [pybind11](https://pybind11.readthedocs.io).
 
+See `src/python_test.py` for a Python example.
+
 
 ## Building
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -39,8 +40,19 @@ phonemize_espeak(std::string text, std::string voice, std::string dataPath) {
 }
 
 std::vector<std::vector<piper::Phoneme>>
-phonemize_codepoints(std::string text) {
+phonemize_codepoints(std::string text, std::string casing) {
   piper::CodepointsPhonemeConfig config;
+
+  if (casing == "ignore") {
+    config.casing = piper::CASING_IGNORE;
+  } else if (casing == "lower") {
+    config.casing = piper::CASING_LOWER;
+  } else if (casing == "upper") {
+    config.casing = piper::CASING_UPPER;
+  } else if (casing == "fold") {
+    config.casing = piper::CASING_FOLD;
+  }
+
   std::vector<std::vector<piper::Phoneme>> phonemes;
 
   piper::phonemize_codepoints(text, config, phonemes);
@@ -48,19 +60,20 @@ phonemize_codepoints(std::string text) {
   return phonemes;
 }
 
-std::vector<piper::PhonemeId>
-phoneme_ids_espeak(std::vector<piper::Phoneme> phonemes) {
+std::pair<std::vector<piper::PhonemeId>, std::map<piper::Phoneme, std::size_t>>
+phoneme_ids_espeak(std::vector<piper::Phoneme> &phonemes) {
   piper::PhonemeIdConfig config;
   std::vector<piper::PhonemeId> phonemeIds;
+  std::map<piper::Phoneme, std::size_t> missingPhonemes;
 
-  phonemes_to_ids(phonemes, config, phonemeIds);
+  phonemes_to_ids(phonemes, config, phonemeIds, missingPhonemes);
 
-  return phonemeIds;
+  return std::make_pair(phonemeIds, missingPhonemes);
 }
 
-std::vector<piper::PhonemeId>
+std::pair<std::vector<piper::PhonemeId>, std::map<piper::Phoneme, std::size_t>>
 phoneme_ids_codepoints(std::string language,
-                       std::vector<piper::Phoneme> phonemes) {
+                       std::vector<piper::Phoneme> &phonemes) {
   if (piper::DEFAULT_ALPHABET.count(language) < 1) {
     throw std::runtime_error("No phoneme/id map for language");
   }
@@ -69,11 +82,14 @@ phoneme_ids_codepoints(std::string language,
   config.phonemeIdMap =
       std::make_shared<piper::PhonemeIdMap>(piper::DEFAULT_ALPHABET[language]);
   std::vector<piper::PhonemeId> phonemeIds;
+  std::map<piper::Phoneme, std::size_t> missingPhonemes;
 
-  phonemes_to_ids(phonemes, config, phonemeIds);
+  phonemes_to_ids(phonemes, config, phonemeIds, missingPhonemes);
 
-  return phonemeIds;
+  return std::make_pair(phonemeIds, missingPhonemes);
 }
+
+std::size_t get_max_phonemes() { return piper::MAX_PHONEMES; }
 
 piper::PhonemeIdMap get_espeak_map() { return piper::DEFAULT_PHONEME_ID_MAP; }
 
@@ -97,6 +113,7 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
            phoneme_ids_codepoints
            get_espeak_map
            get_codepoints_map
+           get_max_phonemes
     )pbdoc";
 
   m.def("phonemize_espeak", &phonemize_espeak, R"pbdoc(
@@ -121,6 +138,10 @@ PYBIND11_MODULE(piper_phonemize_cpp, m) {
 
   m.def("get_codepoints_map", &get_codepoints_map, R"pbdoc(
         Get codepoint/id map for supported languages
+    )pbdoc");
+
+  m.def("get_max_phonemes", &get_max_phonemes, R"pbdoc(
+        Get maximum number of phonemes in id maps
     )pbdoc");
 
 #ifdef VERSION_INFO

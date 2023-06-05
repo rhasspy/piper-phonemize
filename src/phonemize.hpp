@@ -54,7 +54,12 @@ struct eSpeakPhonemeConfig {
 void phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
                       std::vector<std::vector<Phoneme>> &phonemes);
 
-enum TextCasing { CASING_IGNORE, CASING_LOWER, CASING_UPPER, CASING_FOLD };
+enum TextCasing {
+  CASING_IGNORE = 0,
+  CASING_LOWER = 1,
+  CASING_UPPER = 2,
+  CASING_FOLD = 3
+};
 
 // Configuration for phonemize_codepoints
 struct CodepointsPhonemeConfig {

@@ -84,7 +84,8 @@ std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET = {
 
 void phonemes_to_ids(const std::vector<Phoneme> &phonemes,
                      PhonemeIdConfig &config,
-                     std::vector<PhonemeId> &phonemeIds) {
+                     std::vector<PhonemeId> &phonemeIds,
+                     std::map<Phoneme, std::size_t> &missingPhonemes) {
 
   auto phonemeIdMap = std::make_shared<PhonemeIdMap>(DEFAULT_PHONEME_ID_MAP);
   if (config.phonemeIdMap) {
@@ -108,8 +109,14 @@ void phonemes_to_ids(const std::vector<Phoneme> &phonemes,
     auto const padIds = &(phonemeIdMap->at(config.pad));
 
     for (auto const phoneme : phonemes) {
-      if (config.skipMissingPhonemes && (phonemeIdMap->count(phoneme) < 1)) {
-        // TODO: Report missing phonemes
+      if (phonemeIdMap->count(phoneme) < 1) {
+        // Phoneme is missing from id map
+        if (missingPhonemes.count(phoneme) < 1) {
+          missingPhonemes[phoneme] = 1;
+        } else {
+          missingPhonemes[phoneme] += 1;
+        }
+
         continue;
       }
 
