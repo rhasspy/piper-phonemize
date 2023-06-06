@@ -45,7 +45,7 @@ RUN mkdir -p /dist/lib && \
     find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./lib/ \; && \
     mkdir -p ./include && \
     cp /build/src/phonemize.hpp /build/src/phoneme_ids.hpp ./include/ && \
-    tar -czf piper_phonemize.tar.gz *
+    tar -czf libpiper_phonemize.tar.gz *
 
 # Build piper_phonemize Python package
 COPY setup.py pyproject.toml MANIFEST.in README.md LICENSE.md ./
@@ -59,6 +59,8 @@ RUN auditwheel repair *.whl
 # -----------------------------------------------------------------------------
 
 FROM scratch
+ARG TARGETARCH
+ARG TARGETVARIANT
 
-COPY --from=build /dist/libpiper_phonemize.tar.gz ./
+COPY --from=build /dist/libpiper_phonemize.tar.gz ./libpiper_phonemize-${TARGETARCH}${TARGETVARIANT}.tar.gz
 COPY --from=build /build/wheelhouse/ ./
