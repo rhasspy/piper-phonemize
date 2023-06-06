@@ -2,7 +2,10 @@
 #include <string>
 #include <vector>
 
+#include <espeak-ng/speak_lib.h>
+
 #include "phonemize.hpp"
+#include "uni_algo.h"
 
 namespace piper {
 

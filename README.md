@@ -2,7 +2,8 @@
 
 Converts text to phonemes for [Piper](https://github.com/rhasspy/piper).
 
-Requires [espeak-ng fork](https://github.com/rhasspy/espeak-ng) with `espeak_TextToPhonemesWithTerminator` function (allows punctuation preservation).
+When using eSpeak phonemes, requires an [espeak-ng fork](https://github.com/rhasspy/espeak-ng) with `espeak_TextToPhonemesWithTerminator` function.
+This function allows for Piper to preserve punctuation and detect sentence boundaries.
 
 
 ## Usage

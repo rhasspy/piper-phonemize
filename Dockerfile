@@ -38,12 +38,14 @@ RUN mkdir build && \
     make
 
 # Package libpiper_phonemize.so
-RUN mkdir /dist && \
+RUN mkdir -p /dist/lib && \
     cd /dist && \
-    cp /build/build/libpiper_phonemize.so ./ && \
-    find /usr -name 'libespeak-ng*.so*' -exec cp -a {} ./ \; && \
-    find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./ \; && \
-    tar -czf libpiper_phonemize.tar.gz *
+    cp /build/build/libpiper_phonemize.so ./lib/ && \
+    find /usr -name 'libespeak-ng*.so*' -exec cp -a {} ./lib/ \; && \
+    find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./lib/ \; && \
+    mkdir -p ./include && \
+    cp /build/src/phonemize.hpp /build/src/phoneme_ids.hpp ./include/ && \
+    tar -czf piper_phonemize.tar.gz *
 
 # Build piper_phonemize Python package
 COPY setup.py pyproject.toml MANIFEST.in README.md LICENSE.md ./

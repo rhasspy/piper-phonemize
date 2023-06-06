@@ -2,13 +2,9 @@
 #define PHOEMIZE_H_
 
 #include <map>
-#include <optional>
+#include <memory>
 #include <string>
 #include <vector>
-
-#include <espeak-ng/speak_lib.h>
-
-#include "uni_algo.h"
 
 #define CLAUSE_INTONATION_FULL_STOP 0x00000000
 #define CLAUSE_INTONATION_COMMA 0x00001000

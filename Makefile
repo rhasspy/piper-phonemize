@@ -1,4 +1,4 @@
-.PHONY: release test python python-test
+.PHONY: release test python python-test docker
 
 release:
 	mkdir -p build
@@ -15,3 +15,6 @@ python:
 
 python-test:
 	LD_LIBRARY_PATH='espeak-ng/build/lib' python3 src/python_test.py
+
+docker:
+	docker buildx build . --platform 'linux/amd64,linux/arm64' --output 'type=local,dest=dist'
