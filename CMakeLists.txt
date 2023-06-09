@@ -11,6 +11,10 @@ project(
 string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
 string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 
+# lib/Linux-x86_64
+# lib/Linux-aarch64
+set(ONNXRUNTIME_ROOTDIR ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}/onnxruntime)
+
 # ---- espeak-ng ---
 
 find_package(PkgConfig)
@@ -28,16 +32,19 @@ target_include_directories(
     piper_phonemize PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     ${ESPEAK_NG_INCLUDE_DIRS}
+    ${ONNXRUNTIME_ROOTDIR}/include
 )
 
 target_link_directories(
     piper_phonemize PUBLIC
     ${ESPEAK_NG_LIBRARIES}
+    ${ONNXRUNTIME_ROOTDIR}/lib
 )
 
 target_link_libraries(
     piper_phonemize
     ${ESPEAK_NG_LIBRARIES}
+    onnxruntime
 )
 
 target_compile_options(

@@ -7,6 +7,7 @@
 
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
+#include "tashkeel.hpp"
 
 std::string idString(const std::vector<std::vector<piper::Phoneme>> &phonemes,
                      piper::PhonemeIdConfig &idConfig) {
@@ -112,6 +113,20 @@ int main(int argc, char *argv[]) {
   if (missingPhonemes[0] != 3) {
     std::cerr << "Missing count for '0' phoneme: " << missingPhonemes[0]
               << " != 3" << std::endl;
+    return 1;
+  }
+
+  // --------------------------------------------------------------------------
+
+  // Test Arabic with libtashkeel (https://github.com/mush42/libtashkeel)
+  tashkeel::State tashkeelState;
+  tashkeel::tashkeel_load("etc/libtashkeel_model.ort", tashkeelState);
+
+  std::string expectedText = "مَرْحَبًا";
+  std::string actualText = tashkeel::tashkeel_run("مرحبا", tashkeelState);
+  if (expectedText != actualText) {
+    std::cerr << "Expected '" << expectedText << "', got '" << actualText << "'"
+              << std::endl;
     return 1;
   }
 
