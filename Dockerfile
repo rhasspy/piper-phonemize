@@ -15,6 +15,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /build
 
+RUN mkdir -p "lib/Linux-$(uname -m)"
+
 # Download and extract onnxruntime
 ARG ONNXRUNTIME_VERSION='1.14.1'
 RUN if [ "${TARGETARCH}${TARGETVARIANT}" = 'amd64' ]; then \
@@ -45,8 +47,14 @@ RUN curl -L "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.tar.
     make install
 
 # Build libpiper_phonemize.so
-COPY CMakeLists.txt ./
+COPY etc/libtashkeel_model.ort ./etc/
+COPY CMakeLists.txt Makefile ./
 COPY src/ ./src/
+
+# Sanity check
+RUN make test
+
+# Build libpiper_phonemize.so
 RUN mkdir build && \
     cd build && \
     cmake .. && \
@@ -60,7 +68,9 @@ RUN mkdir -p /dist/lib && \
     find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./lib/ \; && \
     mkdir -p ./include && \
     cp -R /usr/include/espeak-ng ./include/ && \
-    cp /build/src/phonemize.hpp /build/src/phoneme_ids.hpp ./include/ && \
+    cp /build/src/phonemize.hpp /build/src/phoneme_ids.hpp /build/src/tashkeel.hpp ./include/ && \
+    find /build/lib -name 'libonnxruntime*.so*' -exec cp -a {} ./lib/ \; && \
+    cp -R /build/etc ./ && \
     tar -czf libpiper_phonemize.tar.gz *
 
 # Build piper_phonemize Python package

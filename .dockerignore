@@ -1,5 +1,6 @@
 *
 !CMakeLists.txt
+!Makefile
 !src/
 !setup.py
 !pyproject.toml
@@ -7,3 +8,4 @@
 !LICENSE.md
 !README.md
 !MANIFEST.in
+!etc/libtashkeel_model.ort
