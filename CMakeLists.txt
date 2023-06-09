@@ -26,6 +26,7 @@ add_library(
     piper_phonemize SHARED
     src/phonemize.cpp
     src/phoneme_ids.cpp
+    src/tashkeel.cpp
 )
 
 target_include_directories(

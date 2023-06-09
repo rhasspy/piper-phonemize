@@ -158,7 +158,8 @@ std::string tashkeel_run(std::string text, State &state) {
         }
       }
 
-      if ((INVALID_HARAKA_IDS.count(maxId) < 1) && (outputVocab.count(maxId) > 0)) {
+      if ((INVALID_HARAKA_IDS.count(maxId) < 1) &&
+          (outputVocab.count(maxId) > 0)) {
         // Add predicted haraka
         for (auto haraka : outputVocab[maxId]) {
           processedText += haraka;
@@ -168,6 +169,15 @@ std::string tashkeel_run(std::string text, State &state) {
 
     // Next output char
     i++;
+  }
+
+  // Clean up
+  for (std::size_t i = 0; i < outputTensors.size(); i++) {
+    Ort::detail::OrtRelease(outputTensors[i].release());
+  }
+
+  for (std::size_t i = 0; i < inputTensors.size(); i++) {
+    Ort::detail::OrtRelease(inputTensors[i].release());
   }
 
   // Result is UTF-8

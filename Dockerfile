@@ -57,7 +57,7 @@ RUN make test
 # Build libpiper_phonemize.so
 RUN mkdir build && \
     cd build && \
-    cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
     make
 
 # Package libpiper_phonemize.so
@@ -69,7 +69,8 @@ RUN mkdir -p /dist/lib && \
     mkdir -p ./include && \
     cp -R /usr/include/espeak-ng ./include/ && \
     cp /build/src/phonemize.hpp /build/src/phoneme_ids.hpp /build/src/tashkeel.hpp ./include/ && \
-    find /build/lib -name 'libonnxruntime*.so*' -exec cp -a {} ./lib/ \; && \
+    cp -a "/build/lib/Linux-$(uname -m)/onnxruntime/lib"/libonnxruntime*.so* ./lib/ && \
+    cp -R "/build/lib/Linux-$(uname -m)/onnxruntime/include"/* ./include/ && \
     cp -R /build/etc ./ && \
     tar -czf libpiper_phonemize.tar.gz *
 
