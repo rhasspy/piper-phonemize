@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
+set(CMAKE_VERBOSE_MAKEFILE off)
+
 project(
     piper_phonemize
     VERSION 0.0.1
@@ -38,7 +40,7 @@ target_include_directories(
 
 target_link_directories(
     piper_phonemize PUBLIC
-    ${ESPEAK_NG_LIBRARIES}
+    ${ESPEAK_NG_LIBRARY_DIRS}
     ${ONNXRUNTIME_ROOTDIR}/lib
 )
 
@@ -54,3 +56,30 @@ target_compile_options(
 )
 
 target_compile_features(piper_phonemize PUBLIC cxx_std_17)
+
+# ---- Declare executable ----
+
+add_executable(piper_phonemize_exe src/main.cpp)
+set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
+
+target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
+
+target_include_directories(
+    piper_phonemize_exe PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+    ${ESPEAK_NG_INCLUDE_DIRS}
+)
+
+target_link_directories(
+    piper_phonemize_exe PUBLIC
+    ${ESPEAK_NG_LIBRARY_DIRS}
+)
+
+target_link_libraries(piper_phonemize_exe PUBLIC
+                      piper_phonemize
+                      ${ESPEAK_NG_LIBRARIES})
+
+target_compile_options(
+    piper_phonemize_exe PUBLIC
+    ${ESPEAK_NG_CFLAGS_OTHER}
+)

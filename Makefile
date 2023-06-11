@@ -8,6 +8,7 @@ release:
 	cp -a espeak-ng/build/lib/libespeak*.so* build/
 	cp -R espeak-ng/build/share/espeak-ng-data build/
 	cp -a $(LIB_DIR)/onnxruntime/lib/libonnxruntime*.so* build/
+	cp etc/libtashkeel_model.ort build/
 
 test:
 	g++ -Wall -o test -Iespeak-ng/build/include -Lespeak-ng/build/lib -I$(LIB_DIR)/onnxruntime/include -L$(LIB_DIR)/onnxruntime/lib -Isrc -std=c++17 src/test.cpp src/phonemize.cpp src/phoneme_ids.cpp src/tashkeel.cpp -lespeak-ng -lonnxruntime
