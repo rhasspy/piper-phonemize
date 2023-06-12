@@ -60,7 +60,7 @@ RUN mkdir build && \
     cmake -DCMAKE_BUILD_TYPE=Release .. && \
     make
 
-# Package libpiper_phonemize.so
+# Package libpiper_phonemize.so and piper_phonemize
 RUN mkdir -p /dist/lib && \
     cd /dist && \
     cp /build/build/libpiper_phonemize.so /build/build/piper_phonemize ./lib/ && \
@@ -75,13 +75,15 @@ RUN mkdir -p /dist/lib && \
     tar -czf libpiper_phonemize.tar.gz *
 
 # Build piper_phonemize Python package
-# COPY setup.py pyproject.toml MANIFEST.in README.md LICENSE.md ./
-# COPY piper_phonemize/ ./piper_phonemize/
-# RUN find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./piper_phonemize/ \;
-# RUN /opt/python/cp39-cp39/bin/pip wheel .
-# RUN /opt/python/cp310-cp310/bin/pip wheel .
-# RUN /opt/python/cp311-cp311/bin/pip wheel .
-# RUN auditwheel repair *.whl
+COPY setup.py pyproject.toml MANIFEST.in README.md LICENSE.md ./
+COPY piper_phonemize/ ./piper_phonemize/
+RUN find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./piper_phonemize/ \; && \
+    cp /build/etc/libtashkeel_model.ort ./piper_phonemize/
+RUN /opt/python/cp39-cp39/bin/pip wheel . && \
+    /opt/python/cp310-cp310/bin/pip wheel . && \
+    /opt/python/cp311-cp311/bin/pip wheel .
+RUN cp -a "/build/lib/Linux-$(uname -m)/onnxruntime/lib"/libonnxruntime*.so* /usr/lib/ && \
+    auditwheel repair *.whl
 
 # -----------------------------------------------------------------------------
 
@@ -90,4 +92,4 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 
 COPY --from=build /dist/libpiper_phonemize.tar.gz ./libpiper_phonemize-${TARGETARCH}${TARGETVARIANT}.tar.gz
-# COPY --from=build /build/wheelhouse/ ./
+COPY --from=build /build/wheelhouse/ ./

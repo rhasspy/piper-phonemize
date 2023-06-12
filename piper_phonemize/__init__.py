@@ -11,9 +11,11 @@ from piper_phonemize_cpp import (
     get_espeak_map,
     get_codepoints_map,
     get_max_phonemes,
+    tashkeel_run as _tashkeel_run,
 )
 
 _DIR = Path(__file__).parent
+_TASHKEEL_MODEL = _DIR / "libtashkeel_model.ort"
 
 
 class TextCasing(str, Enum):
@@ -65,3 +67,8 @@ def phoneme_ids_codepoints(
         missing_phonemes.update(missing_counts)
 
     return phoneme_ids
+
+
+def tashkeel_run(text: str, tashkeel_model: Union[str, Path] = _TASHKEEL_MODEL) -> str:
+    tashkeel_model = str(tashkeel_model)
+    return _tashkeel_run(tashkeel_model, text)

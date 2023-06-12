@@ -8,6 +8,7 @@ from piper_phonemize import (
     get_codepoints_map,
     get_espeak_map,
     get_max_phonemes,
+    tashkeel_run,
 )
 
 # -----------------------------------------------------------------------------
@@ -70,6 +71,14 @@ assert phoneme_ids_codepoints(
     "uk", ["\u0000", "\u0000", "\u0000"], missing_phonemes
 ) == [1, 0, 2]
 assert missing_phonemes == {"\u0000": 3}, missing_phonemes
+
+# -----------------------------------------------------------------------------
+
+# Test Arabic with libtashkeel (https://github.com/mush42/libtashkeel)
+
+expected_text = "مَرْحَبًا"
+actual_text = tashkeel_run("مرحبا")
+assert actual_text == expected_text, f"Expected {expected_text}, got {actual_text}"
 
 # -----------------------------------------------------------------------------
 
