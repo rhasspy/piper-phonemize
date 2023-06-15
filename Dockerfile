@@ -1,6 +1,21 @@
 FROM quay.io/pypa/manylinux_2_28_x86_64 as build-amd64
+ARG ONNXRUNTIME_VERSION='1.14.1'
+ENV ONNXRUNTIME_URL="https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-x64-${ONNXRUNTIME_VERSION}.tgz"
 
 FROM quay.io/pypa/manylinux_2_28_aarch64 as build-arm64
+ARG ONNXRUNTIME_VERSION='1.14.1'
+ENV ONNXRUNTIME_URL="https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-aarch64-${ONNXRUNTIME_VERSION}.tgz"
+
+FROM debian:bullseye as build-armv7
+ARG ONNXRUNTIME_VERSION='1.14.1'
+ENV ONNXRUNTIME_URL="https://github.com/synesthesiam/prebuilt-apps/releases/download/v1.0/onnxruntime-linux-arm32-${ONNXRUNTIME_VERSION}.tgz"
+
+ENV LANG C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install --yes \
+        build-essential cmake curl ca-certificates autoconf automake libtool pkg-config
 
 # -----------------------------------------------------------------------------
 
@@ -18,13 +33,7 @@ WORKDIR /build
 RUN mkdir -p "lib/Linux-$(uname -m)"
 
 # Download and extract onnxruntime
-ARG ONNXRUNTIME_VERSION='1.14.1'
-RUN if [ "${TARGETARCH}${TARGETVARIANT}" = 'amd64' ]; then \
-        ONNXRUNTIME_ARCH='x64'; \
-    else \
-        ONNXRUNTIME_ARCH="$(uname -m)"; \
-    fi && \
-    curl -L "https://github.com/microsoft/onnxruntime/releases/download/v${ONNXRUNTIME_VERSION}/onnxruntime-linux-${ONNXRUNTIME_ARCH}-${ONNXRUNTIME_VERSION}.tgz" | \
+RUN curl -L "${ONNXRUNTIME_URL}" | \
         tar -C "lib/Linux-$(uname -m)" -xzvf - && \
     mv "lib/Linux-$(uname -m)"/onnxruntime-* \
        "lib/Linux-$(uname -m)/onnxruntime"
@@ -33,6 +42,7 @@ RUN if [ "${TARGETARCH}${TARGETVARIANT}" = 'amd64' ]; then \
 RUN curl -L "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.tar.gz" | \
     tar -xzvf - && \
     cd espeak-ng-master && \
+    export CFLAGS='-D_FILE_OFFSET_BITS=64' && \
     ./autogen.sh && \
     ./configure \
         --without-pcaudiolib \
@@ -79,11 +89,15 @@ COPY setup.py pyproject.toml MANIFEST.in README.md LICENSE.md ./
 COPY piper_phonemize/ ./piper_phonemize/
 RUN find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./piper_phonemize/ \; && \
     cp /build/etc/libtashkeel_model.ort ./piper_phonemize/
-RUN /opt/python/cp39-cp39/bin/pip wheel . && \
+
+RUN mkdir -p wheelhouse
+RUN if [ "$(which auditwheel)" ]; then \
+    /opt/python/cp39-cp39/bin/pip wheel . && \
     /opt/python/cp310-cp310/bin/pip wheel . && \
-    /opt/python/cp311-cp311/bin/pip wheel .
-RUN cp -a "/build/lib/Linux-$(uname -m)/onnxruntime/lib"/libonnxruntime*.so* /usr/lib/ && \
-    auditwheel repair *.whl
+    /opt/python/cp311-cp311/bin/pip wheel . && \
+    cp -a "/build/lib/Linux-$(uname -m)/onnxruntime/lib"/libonnxruntime*.so* /usr/lib/ && \
+    auditwheel repair *.whl; \
+    fi
 
 # -----------------------------------------------------------------------------
 

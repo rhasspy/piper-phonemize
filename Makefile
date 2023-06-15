@@ -23,4 +23,4 @@ python-test:
 	LD_LIBRARY_PATH="espeak-ng/build/lib:$(LIB_DIR)/onnxruntime/lib" .venv/bin/python3 src/python_test.py
 
 docker:
-	docker buildx build . --platform 'linux/amd64,linux/arm64' --output 'type=local,dest=dist'
+	docker buildx build . --platform 'linux/amd64,linux/arm64,linux/arm/v7' --output 'type=local,dest=dist'
