@@ -35,14 +35,20 @@ void phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
 
   std::vector<Phoneme> *sentencePhonemes = nullptr;
   const char *inputTextPointer = textCopy.c_str();
-  int terminator = 0;
 
   while (inputTextPointer != NULL) {
-    // Modified espeak-ng API to get access to clause terminator
-    std::string clausePhonemes(espeak_TextToPhonemesWithTerminator(
+    int terminator = 0;
+    std::string clausePhonemes(espeak_TextToPhonemes(
         (const void **)&inputTextPointer,
         /*textmode*/ espeakCHARS_AUTO,
-        /*phonememode = IPA*/ 0x02, &terminator));
+        /*phonememode = IPA*/ 0x02));
+
+    for (size_t i = -2; inputTextPointer && inputTextPointer+i > textCopy.c_str(); i--) {
+      if (inputTextPointer[i] != ' ') {
+        terminator = inputTextPointer[i];
+        break;
+      }
+    }
 
     // Decompose, e.g. "ç" -> "c" + "̧"
     auto phonemesNorm = una::norm::to_nfd_utf8(clausePhonemes);
@@ -105,22 +111,21 @@ void phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
     }
 
     // Add appropriate punctuation depending on terminator type
-    int punctuation = terminator & 0x000FFFFF;
-    if (punctuation == CLAUSE_PERIOD) {
+    if (terminator == '.') {
       sentencePhonemes->push_back(config.period);
-    } else if (punctuation == CLAUSE_QUESTION) {
+    } else if (terminator == '?') {
       sentencePhonemes->push_back(config.question);
-    } else if (punctuation == CLAUSE_EXCLAMATION) {
+    } else if (terminator == '!') {
       sentencePhonemes->push_back(config.exclamation);
-    } else if (punctuation == CLAUSE_COMMA) {
+    } else if (terminator == ',') {
       sentencePhonemes->push_back(config.comma);
-    } else if (punctuation == CLAUSE_COLON) {
+    } else if (terminator == ':') {
       sentencePhonemes->push_back(config.colon);
-    } else if (punctuation == CLAUSE_SEMICOLON) {
+    } else if (terminator == ';') {
       sentencePhonemes->push_back(config.semicolon);
     }
 
-    if ((terminator & CLAUSE_TYPE_SENTENCE) == CLAUSE_TYPE_SENTENCE) {
+    if (terminator == '.' || terminator == '?' || terminator == '!') {
       // End of sentence
       sentencePhonemes = nullptr;
     }
