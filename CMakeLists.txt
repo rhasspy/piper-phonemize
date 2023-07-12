@@ -31,6 +31,10 @@ add_library(
     src/tashkeel.cpp
 )
 
+set_target_properties(piper_phonemize PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
+
 target_include_directories(
     piper_phonemize PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
