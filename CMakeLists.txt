@@ -87,3 +87,20 @@ target_compile_options(
     piper_phonemize_exe PUBLIC
     ${ESPEAK_NG_CFLAGS_OTHER}
 )
+
+# ---- Declare install targets ----
+
+install(
+    TARGETS piper_phonemize
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/src/
+    DESTINATION include/piper-phonemize
+    FILES_MATCHING
+    PATTERN "*.h"
+    PATTERN "*.hpp")
+
+install(
+    TARGETS piper_phonemize_exe
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
