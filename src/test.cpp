@@ -8,6 +8,7 @@
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
 #include "tashkeel.hpp"
+#include "uni_algo.h"
 
 std::string idString(const std::vector<std::vector<piper::Phoneme>> &phonemes,
                      piper::PhonemeIdConfig &idConfig) {
@@ -23,6 +24,22 @@ std::string idString(const std::vector<std::vector<piper::Phoneme>> &phonemes,
   }
 
   return idStr.str();
+}
+
+std::string
+phonemeString(const std::vector<std::vector<piper::Phoneme>> &phonemes) {
+  std::stringstream phonemeStr;
+  for (auto &sentencePhonemes : phonemes) {
+    for (auto phoneme : sentencePhonemes) {
+      // Convert to UTF-8 string
+      std::u32string phonemeU32Str;
+      phonemeU32Str += phoneme;
+
+      phonemeStr << una::utf32to8(phonemeU32Str);
+    }
+  }
+
+  return phonemeStr.str();
 }
 
 int main(int argc, char *argv[]) {
@@ -55,6 +72,18 @@ int main(int argc, char *argv[]) {
   std::string idStr = idString(phonemes, idConfig);
   if (idStr != "1 0 24 0 120 0 74 0 16 0 140 0 32 0 4 0 2 ") {
     std::cerr << "licht: " << idStr << std::endl;
+    return 1;
+  }
+
+  // Check whitespace around punctuation
+  phonemeConfig.voice = "en-us";
+  phonemes.clear();
+
+  piper::phonemize_eSpeak("this, is: a; test.", phonemeConfig, phonemes);
+
+  std::string phonemeStr = phonemeString(phonemes);
+  if (phonemeStr != "ðˈɪs, ɪz: ˈeɪ; tˈɛst.") {
+    std::cerr << "punctuation test: " << phonemeStr << std::endl;
     return 1;
   }
 

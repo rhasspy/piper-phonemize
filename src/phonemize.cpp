@@ -114,10 +114,13 @@ void phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
       sentencePhonemes->push_back(config.exclamation);
     } else if (punctuation == CLAUSE_COMMA) {
       sentencePhonemes->push_back(config.comma);
+      sentencePhonemes->push_back(config.space);
     } else if (punctuation == CLAUSE_COLON) {
       sentencePhonemes->push_back(config.colon);
+      sentencePhonemes->push_back(config.space);
     } else if (punctuation == CLAUSE_SEMICOLON) {
       sentencePhonemes->push_back(config.semicolon);
+      sentencePhonemes->push_back(config.space);
     }
 
     if ((terminator & CLAUSE_TYPE_SENTENCE) == CLAUSE_TYPE_SENTENCE) {

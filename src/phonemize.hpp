@@ -36,6 +36,7 @@ struct eSpeakPhonemeConfig {
   Phoneme exclamation = U'!'; // CLAUSE_EXCLAMATION
   Phoneme colon = U':';       // CLAUSE_COLON
   Phoneme semicolon = U';';   // CLAUSE_SEMICOLON
+  Phoneme space = U' ';
 
   // Remove language switch flags like "(en)"
   bool keepLanguageFlags = false;
