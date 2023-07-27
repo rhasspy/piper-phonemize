@@ -22,7 +22,7 @@ assert get_max_phonemes() == 256
 de_phonemes = phonemize_espeak("licht!", "de")
 
 # "lˈɪçt!" where "ç" is decomposed into two codepoints
-assert de_phonemes == [["l", "ˈ", "ɪ", "c", "̧", "t", "!"]]
+assert de_phonemes == [["l", "ˈ", "ɪ", "c", "̧", "t", "!"]], de_phonemes
 
 # phoneme -> [id, ...]
 espeak_map = get_espeak_map()
@@ -41,6 +41,15 @@ assert de_ids == [1, 0, 24, 0, 120, 0, 74, 0, 16, 0, 140, 0, 32, 0, 4, 0, 2]
 missing_phonemes: Counter[str] = Counter()
 assert phoneme_ids_espeak(["\u0000", "\u0000", "\u0000"], missing_phonemes) == [1, 0, 2]
 assert missing_phonemes == {"\u0000": 3}, missing_phonemes
+
+# -----------------------------------------------------------------------------
+
+# Capitalization is required to get espeak to split the sentences.
+en_phonemes = phonemize_espeak("Test 1. Test2.", "en-us")
+assert en_phonemes == [
+    ["t", "ˈ", "ɛ", "s", "t", " ", "w", "ˈ", "ʌ", "n", "."],
+    ["t", "ˈ", "ɛ", "s", "t", " ", "t", "ˈ", "u", "ː", "."],
+], en_phonemes
 
 # -----------------------------------------------------------------------------
 

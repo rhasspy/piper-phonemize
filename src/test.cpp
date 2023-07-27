@@ -37,6 +37,8 @@ phonemeString(const std::vector<std::vector<piper::Phoneme>> &phonemes) {
 
       phonemeStr << una::utf32to8(phonemeU32Str);
     }
+
+    phonemeStr << "\n";
   }
 
   return phonemeStr.str();
@@ -82,8 +84,20 @@ int main(int argc, char *argv[]) {
   piper::phonemize_eSpeak("this, is: a; test.", phonemeConfig, phonemes);
 
   std::string phonemeStr = phonemeString(phonemes);
-  if (phonemeStr != "ðˈɪs, ɪz: ˈeɪ; tˈɛst.") {
+  if (phonemeStr != "ðˈɪs, ɪz: ˈeɪ; tˈɛst.\n") {
     std::cerr << "punctuation test: " << phonemeStr << std::endl;
+    return 1;
+  }
+
+  // Check sentence splitting.
+  phonemes.clear();
+
+  // Capitalization is required to get espeak to split the sentences.
+  piper::phonemize_eSpeak("Test 1. Test 2.", phonemeConfig, phonemes);
+
+   phonemeStr = phonemeString(phonemes);
+  if (phonemeStr != "tˈɛst wˈʌn.\ntˈɛst tˈuː.\n") {
+    std::cerr << "sentence split: " << phonemeStr << std::endl;
     return 1;
   }
 
