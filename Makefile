@@ -1,6 +1,7 @@
 .PHONY: release test python python-test docker
 
 LIB_DIR := lib/Linux-$(shell uname -m)
+PLATFORMS ?= linux/amd64,linux/arm64,linux/arm/v7
 
 release:
 	mkdir -p build
@@ -28,4 +29,4 @@ python-wheel:
 	LD_LIBRARY_PATH='espeak-ng/build/lib' .venv/bin/python3 setup.py bdist_wheel
 
 docker:
-	docker buildx build . --platform 'linux/amd64,linux/arm64,linux/arm/v7' --output 'type=local,dest=dist'
+	docker buildx build . --platform "$(PLATFORMS)" --output 'type=local,dest=dist'
