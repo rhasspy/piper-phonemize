@@ -22,5 +22,10 @@ python:
 python-test:
 	LD_LIBRARY_PATH="espeak-ng/build/lib:$(LIB_DIR)/onnxruntime/lib" .venv/bin/python3 src/python_test.py
 
+python-wheel:
+	cp -R espeak-ng/build/share/espeak-ng-data piper_phonemize/
+	cp etc/libtashkeel_model.ort piper_phonemize/
+	LD_LIBRARY_PATH='espeak-ng/build/lib' .venv/bin/python3 setup.py bdist_wheel
+
 docker:
 	docker buildx build . --platform 'linux/amd64,linux/arm64,linux/arm/v7' --output 'type=local,dest=dist'
