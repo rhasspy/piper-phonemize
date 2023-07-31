@@ -73,7 +73,7 @@ RUN mkdir build && \
 # Package libpiper_phonemize.so and piper_phonemize
 RUN mkdir -p /dist/lib && \
     cd /dist && \
-    cp /build/build/libpiper_phonemize.so /build/build/piper_phonemize ./lib/ && \
+    cp /build/build/libpiper_phonemize.so* /build/build/piper_phonemize ./lib/ && \
     find /usr -name 'libespeak-ng*.so*' -exec cp -a {} ./lib/ \; && \
     find /usr -type d -name 'espeak-ng-data' -exec cp -R {} ./lib/ \; && \
     mkdir -p ./include && \
