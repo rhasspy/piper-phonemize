@@ -171,7 +171,12 @@ PhonemeIdMap DEFAULT_PHONEME_ID_MAP = {
     // Luxembourgish
     {U'g', {154}},
     {U'ʦ', {155}},
-    {U'X', {156}}};
+    {U'X', {156}},
+
+    // Czech
+    {U'\u031d', {157}},
+    {U'\u030a', {158}},
+};
 
 // language -> phoneme -> [id, ...]
 std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET = {

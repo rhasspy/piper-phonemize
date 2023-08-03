@@ -4,7 +4,7 @@ set(CMAKE_VERBOSE_MAKEFILE off)
 
 project(
     piper_phonemize
-    VERSION 1.1.0
+    VERSION 1.2.0
     DESCRIPTION "Phonemization library for Piper text to speech system"
     HOMEPAGE_URL "https://github.com/rhasspy/piper-phonemize"
     LANGUAGES CXX

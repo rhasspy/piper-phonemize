@@ -40,8 +40,9 @@ RUN curl -L "${ONNXRUNTIME_URL}" | \
 
 # Build minimal version of espeak-ng
 RUN curl -L "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.tar.gz" | \
-    tar -xzvf - && \
-    cd espeak-ng-master && \
+    tar -xzf -
+
+RUN cd espeak-ng-master && \
     export CFLAGS='-D_FILE_OFFSET_BITS=64' && \
     ./autogen.sh && \
     ./configure \
@@ -51,10 +52,25 @@ RUN curl -L "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.tar.
         --without-mbrola \
         --without-sonic \
         --with-extdict-cmn \
+        --with-extdict-ru \
         --prefix=/usr && \
     make -j8 src/espeak-ng src/speak-ng && \
     make && \
     make install
+
+# For future, not currently working
+# cmake -Bbuild \
+#     -DCMAKE_INSTALL_PREFIX=/usr \
+#     -DCMAKE_BUILD_TYPE=Release \
+#     -DBUILD_SHARED_LIBS=ON \
+#     -DUSE_MBROLA=OFF \
+#     -DUSE_LIBSONIC=OFF \
+#     -DUSE_LIBPCAUDIO=OFF \
+#     -DUSE_KLATT=OFF \
+#     -DUSE_SPEECHPLAYER=OFF \
+#     -DUSE_ASYNC=OFF \
+#     -DEXTRA_cmn=ON \
+#     -DEXTRA_ru=ON && \
 
 # Build libpiper_phonemize.so
 COPY etc/libtashkeel_model.ort ./etc/
