@@ -24,19 +24,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          repository: rhasspy/espeak-ng
+          path: espeak-ng
+      - name: configure-espeak
+        run: cd espeak-ng && cmake -Bbuild -DUSE_ASYNC:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shlib }} -A ${{ matrix.arch }} -DUSE_MBROLA:BOOL=OFF -DUSE_LIBSONIC:BOOL=OFF -DUSE_LIBPCAUDIO:BOOL=OFF -DUSE_KLATT:BOOL=OFF -DUSE_SPEECHPLAYER:BOOL=OFF -DEXTRA_cmn:BOOL=ON -DEXTRA_ru:BOOL=ON
+      - name: make-espeak
+        run: cd espeak-ng && cmake --build build --config ${{ matrix.config }}
+      - uses: actions/checkout@v3
+        with:
           path: piper-phonemize
       - name: prepare-onnxruntime
         run: curl -L -o onnxruntime.zip 'https://github.com/microsoft/onnxruntime/releases/download/v1.14.1/onnxruntime-win-x64-1.14.1.zip' && unzip onnxruntime.zip && mkdir -p piper-phonemize/lib/Windows-x86_64 && mv onnxruntime-* piper-phonemize/lib/Windows-x86_64/onnxruntime
-      # - uses: actions/checkout@v3
-      #   with:
-      #     repository: rhasspy/espeak-ng
-      #     path: espeak-ng
-      # - name: configure-espeak
-      #   run: cd espeak-ng && cmake -Bbuild -DUSE_ASYNC:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shlib }} -A ${{ matrix.arch }} -DUSE_MBROLA:BOOL=OFF -DUSE_LIBSONIC:BOOL=OFF -DUSE_LIBPCAUDIO:BOOL=OFF -DUSE_KLATT:BOOL=OFF -DUSE_SPEECHPLAYER:BOOL=OFF -DEXTRA_cmn:BOOL=ON -DEXTRA_ru:BOOL=ON
-      # - name: make-espeak
-      #   run: cd espeak-ng && cmake --build build --config ${{ matrix.config }}
-      # - uses: actions/checkout@v3
-      #   with:
-      #     path: piper-phonemize
-      # - name: configure-piper
-      #   run: cd piper-phonemize && cmake -Bbuild
+      - name: configure-piper
+        run: cd piper-phonemize && cmake -Bbuild
+      - name: make-piper
+        run: cd piper-phonemize && cmake --build build --config ${{ matrix.config }}
