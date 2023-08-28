@@ -30,6 +30,8 @@ jobs:
         run: cd espeak-ng && cmake -Bbuild -DUSE_ASYNC:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shlib }} -A ${{ matrix.arch }} -DUSE_MBROLA:BOOL=OFF -DUSE_LIBSONIC:BOOL=OFF -DUSE_LIBPCAUDIO:BOOL=OFF -DUSE_KLATT:BOOL=OFF -DUSE_SPEECHPLAYER:BOOL=OFF -DEXTRA_cmn:BOOL=ON -DEXTRA_ru:BOOL=ON
       - name: make-espeak
         run: cd espeak-ng && cmake --build build --config ${{ matrix.config }}
+      - name: install-espeak
+        run: cd espeak-ng && cmake --install build --prefix "$PWD"
       - uses: actions/checkout@v3
         with:
           path: piper-phonemize
