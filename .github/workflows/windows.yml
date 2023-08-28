@@ -38,8 +38,6 @@ jobs:
       - name: prepare-onnxruntime
         run: curl -L -o onnxruntime.zip 'https://github.com/microsoft/onnxruntime/releases/download/v1.14.1/onnxruntime-win-x64-1.14.1.zip' && unzip onnxruntime.zip && mkdir -p piper-phonemize/lib/Windows-x86_64 && mv onnxruntime-* piper-phonemize/lib/Windows-x86_64/onnxruntime
       - name: configure-piper
-        env:
-          PKG_CONFIG_PATH: "$PWD/espeak-ng/lib/pkgconfig"
-        run: cd piper-phonemize && cmake -Bbuild
+        run: cd piper-phonemize && PKG_CONFIG_PATH="${PWD}/espeak-ng/lib/pkgconfig" cmake -Bbuild
       - name: make-piper
         run: cd piper-phonemize && cmake --build build --config ${{ matrix.config }}
