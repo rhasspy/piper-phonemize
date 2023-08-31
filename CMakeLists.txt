@@ -10,17 +10,46 @@ project(
     LANGUAGES CXX
 )
 
-string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
+if(WIN32)
+
+# Force compiler to use UTF-8 for IPA constants
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
+else()
+
+# Linux flags
+string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$$ORIGIN' -I/usr/include/espeak-ng")
 string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
+
+endif()
 
 # lib/Linux-x86_64
 # lib/Linux-aarch64
-set(ONNXRUNTIME_ROOTDIR ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}/onnxruntime)
+# lib/Windows-AMD64
+if(NOT DEFINED ONNXRUNTIME_ROOTDIR)
+
+# Look for onnxruntime files in <root>/lib
+set(ONNXRUNTIME_ROOTDIR ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}/onnxruntime)
+
+endif()
 
 # ---- espeak-ng ---
 
+if(DEFINED ESPEAK_NG_DIR)
+
+# Expect -DESPEAK_NG_DIR on Windows
+set(ESPEAK_NG_INCLUDE_DIRS "${ESPEAK_NG_DIR}/include")
+set(ESPEAK_NG_LIBRARY_DIRS "${ESPEAK_NG_DIR}/lib")
+set(ESPEAK_NG_LIBRARIES "espeak-ng")
+
+else()
+
+# Locate espeak-ng with pkg-config
 find_package(PkgConfig)
 pkg_check_modules(ESPEAK_NG REQUIRED espeak-ng<2)
+
+endif()
 
 # ---- Declare library ----
 
@@ -29,6 +58,7 @@ add_library(
     src/phonemize.cpp
     src/phoneme_ids.cpp
     src/tashkeel.cpp
+    src/shared.cpp
 )
 
 set_target_properties(piper_phonemize PROPERTIES

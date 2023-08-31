@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "phonemize.hpp"
+#include "shared.hpp"
 
 namespace piper {
 
@@ -35,10 +36,10 @@ extern const size_t MAX_PHONEMES;
 extern PhonemeIdMap DEFAULT_PHONEME_ID_MAP;
 extern std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET;
 
-void phonemes_to_ids(const std::vector<Phoneme> &phonemes,
-                     PhonemeIdConfig &config,
-                     std::vector<PhonemeId> &phonemeIds,
-                     std::map<Phoneme, std::size_t> &missingPhonemes);
+PIPERPHONEMIZE_EXPORT void
+phonemes_to_ids(const std::vector<Phoneme> &phonemes, PhonemeIdConfig &config,
+                std::vector<PhonemeId> &phonemeIds,
+                std::map<Phoneme, std::size_t> &missingPhonemes);
 
 } // namespace piper
 

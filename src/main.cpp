@@ -7,6 +7,10 @@
 
 #include <espeak-ng/speak_lib.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "json.hpp"
 #include "phoneme_ids.hpp"
 #include "phonemize.hpp"
@@ -39,6 +43,11 @@ void parseArgs(int argc, char *argv[], RunConfig &runConfig);
 int main(int argc, char *argv[]) {
   RunConfig runConfig;
   parseArgs(argc, argv, runConfig);
+
+#ifdef _WIN32
+  // Required on Windows to show IPA symbols
+  SetConsoleOutputCP(CP_UTF8);
+#endif
 
   piper::eSpeakPhonemeConfig eSpeakConfig;
   piper::CodepointsPhonemeConfig codepointsConfig;

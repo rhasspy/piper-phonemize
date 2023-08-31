@@ -198,10 +198,10 @@ std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET = {
          {U'—', {48}},
      }}};
 
-void phonemes_to_ids(const std::vector<Phoneme> &phonemes,
-                     PhonemeIdConfig &config,
-                     std::vector<PhonemeId> &phonemeIds,
-                     std::map<Phoneme, std::size_t> &missingPhonemes) {
+PIPERPHONEMIZE_EXPORT void
+phonemes_to_ids(const std::vector<Phoneme> &phonemes, PhonemeIdConfig &config,
+                std::vector<PhonemeId> &phonemeIds,
+                std::map<Phoneme, std::size_t> &missingPhonemes) {
 
   auto phonemeIdMap = std::make_shared<PhonemeIdMap>(DEFAULT_PHONEME_ID_MAP);
   if (config.phonemeIdMap) {

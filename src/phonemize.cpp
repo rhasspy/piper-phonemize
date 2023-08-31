@@ -14,8 +14,9 @@ namespace piper {
 std::map<std::string, PhonemeMap> DEFAULT_PHONEME_MAP = {
     {"pt-br", {{U'c', {U'k'}}}}};
 
-void phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
-                      std::vector<std::vector<Phoneme>> &phonemes) {
+PIPERPHONEMIZE_EXPORT void
+phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
+                 std::vector<std::vector<Phoneme>> &phonemes) {
 
   auto voice = config.voice;
   int result = espeak_SetVoiceByName(voice.c_str());
@@ -134,8 +135,9 @@ void phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
 
 // ----------------------------------------------------------------------------
 
-void phonemize_codepoints(std::string text, CodepointsPhonemeConfig &config,
-                          std::vector<std::vector<Phoneme>> &phonemes) {
+PIPERPHONEMIZE_EXPORT void
+phonemize_codepoints(std::string text, CodepointsPhonemeConfig &config,
+                     std::vector<std::vector<Phoneme>> &phonemes) {
 
   if (config.casing == CASING_LOWER) {
     text = una::cases::to_lowercase_utf8(text);
