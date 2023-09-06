@@ -2,6 +2,10 @@ name: Windows
 
 on:
   workflow_dispatch:
+    inputs:
+      debugArchive:
+        type: boolean
+        description: Get a full debug archive even if failed.
   push:
     branches: [ master ]
   pull_request:
@@ -27,17 +31,57 @@ jobs:
           repository: rhasspy/espeak-ng
           path: espeak-ng
       - name: configure-espeak
-        run: cd espeak-ng && cmake -Bbuild -DUSE_ASYNC:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shlib }} -A ${{ matrix.arch }} -DUSE_MBROLA:BOOL=OFF -DUSE_LIBSONIC:BOOL=OFF -DUSE_LIBPCAUDIO:BOOL=OFF -DUSE_KLATT:BOOL=OFF -DUSE_SPEECHPLAYER:BOOL=OFF -DEXTRA_cmn:BOOL=ON -DEXTRA_ru:BOOL=ON
+        run: |
+             cd espeak-ng &&
+             cmake -Bbuild -DUSE_ASYNC:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=${{ matrix.shlib }} -A ${{ matrix.arch }} -DUSE_MBROLA:BOOL=OFF -DUSE_LIBSONIC:BOOL=OFF -DUSE_LIBPCAUDIO:BOOL=OFF -DUSE_KLATT:BOOL=OFF -DUSE_SPEECHPLAYER:BOOL=OFF -DEXTRA_cmn:BOOL=ON -DEXTRA_ru:BOOL=ON
       - name: make-espeak
-        run: cd espeak-ng && cmake --build build --config ${{ matrix.config }}
+        run: |
+             cd espeak-ng
+             cmake --build build --config ${{ matrix.config }}
       - name: install-espeak
-        run: cd espeak-ng && cmake --install build --prefix "$PWD"
+        run: |
+            cd espeak-ng
+            cmake --install build --prefix "${{ github.workspace }}/espeak-ng-install"
       - uses: actions/checkout@v3
         with:
           path: piper-phonemize
       - name: prepare-onnxruntime
-        run: curl -L -o onnxruntime.zip 'https://github.com/microsoft/onnxruntime/releases/download/v1.14.1/onnxruntime-win-x64-1.14.1.zip' && unzip onnxruntime.zip && mkdir -p piper-phonemize/lib/Windows-x86_64 && mv onnxruntime-* piper-phonemize/lib/Windows-x86_64/onnxruntime
+        run: |
+             cd piper-phonemize
+             curl -L -o onnxruntime.zip 'https://github.com/microsoft/onnxruntime/releases/download/v1.14.1/onnxruntime-win-x64-1.14.1.zip'
+             unzip onnxruntime.zip
+             mkdir -p lib/Windows-AMD64
+             mv onnxruntime-* lib/Windows-AMD64/onnxruntime
       - name: configure-piper
-        run: cd piper-phonemize && env:PKG_CONFIG_PATH="${PWD}/espeak-ng/lib/pkgconfig" && cmake -Bbuild
+        run: |
+             cd piper-phonemize
+             $env:ESPEAK_PREFIX_DIR = "${{ github.workspace }}/espeak-ng-install"
+             cmake -Bbuild  -DCMAKE_INSTALL_PREFIX=lib/Windows-AMD64
       - name: make-piper
-        run: cd piper-phonemize && cmake --build build --config ${{ matrix.config }}
+        run: |
+             cd piper-phonemize
+             cmake --build build --config ${{ matrix.config }}
+      - name: bundle-library
+        run: |
+             cd piper-phonemize
+             $env:CMAKE_INSTALL_BINDIR = "lib/Windows-AMD64/"   
+             cmake --install build
+      - name: bundle
+        run: |
+             cd piper-phonemize
+             mkdir -p lib/Windows-AMD64/espeak-ng/build
+             mv ${{ github.workspace }}/espeak-ng-install/lib lib/Windows-AMD64/espeak-ng/build
+             cp ${{ github.workspace }}/espeak-ng-install/bin/* lib/Windows-AMD64/espeak-ng/build/lib/
+             rm -r -fo build
+             rm -r -fo onnxruntime.zip
+      - name: Archive Files
+        uses: actions/upload-artifact@v2
+        with:
+          name: readyforwheel 
+          path: piper-phonemize/
+      - name: Debug Archive
+        uses: actions/upload-artifact@v2
+        if: always() && github.event.inputs.debugArchive == 'true'
+        with:
+          name: debug 
+          path: ./

@@ -83,7 +83,14 @@ void tashkeel_load(std::string modelPath, State &state) {
                        instanceName.c_str());
   state.env.DisableTelemetryEvents();
   state.options.SetExecutionMode(ExecutionMode::ORT_PARALLEL);
-  state.onnx = Ort::Session(state.env, modelPath.c_str(), state.options);
+  #ifdef _WIN32  // This is defined for Windows
+    std::wstring wModelPath(modelPath.begin(), modelPath.end());
+    state.onnx = Ort::Session(state.env, wModelPath.c_str(), state.options);
+  #else  // This is for Linux
+    state.onnx = Ort::Session(state.env, modelPath.c_str(), state.options);
+  #endif
+
+  
 }
 
 std::string tashkeel_run(std::string text, State &state) {
