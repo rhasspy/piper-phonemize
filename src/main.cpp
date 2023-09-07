@@ -7,7 +7,9 @@
 
 #include <espeak-ng/speak_lib.h>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <windows.h>
 #endif
 

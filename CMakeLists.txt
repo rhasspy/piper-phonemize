@@ -19,7 +19,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 else()
 
 # Linux flags
-string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$$ORIGIN' -I/usr/include/espeak-ng")
+string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$$ORIGIN'")
 string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 
 endif()
