@@ -16,7 +16,5 @@ htmlcov
 /*.so
 /test
 
-espeak-ng-data/
-
-/espeak-ng/
 /lib/
+/download/
