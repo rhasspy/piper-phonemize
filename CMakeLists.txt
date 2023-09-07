@@ -163,7 +163,7 @@ target_compile_features(piper_phonemize PUBLIC cxx_std_17)
 
 # ---- Declare executable ----
 
-add_executable(piper_phonemize_exe src/main.cpp)
+add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
 
 if(NOT WIN32)
     set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
