@@ -61,7 +61,7 @@ jobs:
     runs-on: windows-latest
     name: "windows build: ${{ matrix.arch }}"
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         arch: [x64]
     steps:
