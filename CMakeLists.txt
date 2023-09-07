@@ -10,17 +10,27 @@ project(
     LANGUAGES CXX
 )
 
-string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
-string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
+if(MSVC)
+	set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS true)
+    string(APPEND CMAKE_CXX_FLAGS " /W4 /utf-8")
+    string(APPEND CMAKE_C_FLAGS " /W4 /utf-8")
+
+    find_library(ESPEAK_NG_LIBRARIES espeak-ng HINTS "$ENV{ESPEAK_PREFIX_DIR}/lib")
+	find_path(ESPEAK_NG_LIBRARY_DIRS NAMES espeak-ng.lib PATH_SUFFIXES lib HINTS "$ENV{ESPEAK_PREFIX_DIR}")
+    find_path(ESPEAK_NG_INCLUDE_DIRS NAMES espeak-ng/espeak_ng.h PATH_SUFFIXES include HINTS "$ENV{ESPEAK_PREFIX_DIR}")
+else()
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
+    string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
+
+    find_package(PkgConfig)
+    pkg_check_modules(ESPEAK_NG REQUIRED espeak-ng<2)
+endif()
 
 # lib/Linux-x86_64
 # lib/Linux-aarch64
 set(ONNXRUNTIME_ROOTDIR ${CMAKE_CURRENT_LIST_DIR}/lib/${CMAKE_HOST_SYSTEM_NAME}-${CMAKE_HOST_SYSTEM_PROCESSOR}/onnxruntime)
 
-# ---- espeak-ng ---
 
-find_package(PkgConfig)
-pkg_check_modules(ESPEAK_NG REQUIRED espeak-ng<2)
 
 # ---- Declare library ----
 
@@ -76,7 +86,8 @@ target_include_directories(
 
 target_link_directories(
     piper_phonemize_exe PUBLIC
-    ${ESPEAK_NG_LIBRARY_DIRS}
+    piper_phonemize
+	${ESPEAK_NG_LIBRARY_DIRS}
 )
 
 target_link_libraries(piper_phonemize_exe PUBLIC

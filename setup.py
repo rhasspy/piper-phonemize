@@ -7,8 +7,9 @@ from setuptools import setup
 
 _DIR = Path(__file__).parent
 _ESPEAK_DIR = _DIR / "espeak-ng" / "build"
-_LIB_DIR = _DIR / "lib" / f"Linux-{platform.machine()}"
+_LIB_DIR = _DIR / "lib" / f"{platform.system()}-{platform.machine()}"
 _ONNXRUNTIME_DIR = _LIB_DIR / "onnxruntime"
+_PHONEMIZE_WIN_BUILD = _LIB_DIR / "piper_phonemize""
 
 __version__ = "1.2.0"
 
@@ -22,9 +23,9 @@ ext_modules = [
             "src/tashkeel.cpp",
         ],
         define_macros=[("VERSION_INFO", __version__)],
-        include_dirs=[str(_ESPEAK_DIR / "include"), str(_ONNXRUNTIME_DIR / "include")],
-        library_dirs=[str(_ESPEAK_DIR / "lib"), str(_ONNXRUNTIME_DIR / "lib")],
-        libraries=["espeak-ng", "onnxruntime"],
+        include_dirs=[str(_ESPEAK_DIR / "include"), str(_ONNXRUNTIME_DIR / "include"), str(_PHONEMIZE_WIN_BUILD, "include")],
+        library_dirs=[str(_ESPEAK_DIR / "lib"), str(_ONNXRUNTIME_DIR / "lib"), str(_PHONEMIZE_WIN_BUILD, "lib"), str(_PHONEMIZE_WIN_BUILD, "bin")],
+        libraries=["espeak-ng", "onnxruntime", "piper_phonemize"],
     ),
 ]
 

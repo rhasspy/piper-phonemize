@@ -7,6 +7,18 @@
 
 #include "phonemize.hpp"
 
+// Basically cmake export all symbols in windows still requires
+// explicit export of data symbols
+#if defined(_WIN32)
+  #ifdef piper_phonemize_EXPORTS
+    #define API_DATA __declspec(dllexport)
+  #else
+    #define API_DATA __declspec(dllimport)
+  #endif
+#else
+  #define API
+#endif
+
 namespace piper {
 
 typedef int64_t PhonemeId;
@@ -31,9 +43,9 @@ struct PhonemeIdConfig {
   std::shared_ptr<PhonemeIdMap> phonemeIdMap;
 };
 
-extern const size_t MAX_PHONEMES;
-extern PhonemeIdMap DEFAULT_PHONEME_ID_MAP;
-extern std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET;
+extern API_DATA const size_t MAX_PHONEMES;
+extern API_DATA PhonemeIdMap DEFAULT_PHONEME_ID_MAP;
+extern API_DATA std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET;
 
 void phonemes_to_ids(const std::vector<Phoneme> &phonemes,
                      PhonemeIdConfig &config,
