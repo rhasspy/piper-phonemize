@@ -18,3 +18,5 @@ htmlcov
 
 /lib/
 /download/
+/cmake/
+/_install/

@@ -78,7 +78,7 @@ jobs:
       - name: package
         run: |
           cd _install
-          Compress-Archive -LiteralPath espeak-ng -DestinationPath piper-phonemize_windows_amd64.zip
+          Compress-Archive -LiteralPath piper-phonemize -DestinationPath piper-phonemize_windows_amd64.zip
       - name: upload
         uses: actions/upload-release-asset@v1
         env:
