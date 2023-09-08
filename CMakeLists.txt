@@ -10,6 +10,18 @@ project(
     LANGUAGES CXX
 )
 
+add_library(
+    piper_phonemize SHARED
+    src/phonemize.cpp
+    src/phoneme_ids.cpp
+    src/tashkeel.cpp
+    src/shared.cpp
+)
+
+set_target_properties(piper_phonemize PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR})
+
 if(WIN32)
     # Force compiler to use UTF-8 for IPA constants
     add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -72,91 +84,47 @@ endif()
 
 # ---- espeak-ng ---
 
-if(DEFINED ESPEAK_NG_PKGCONFIG)
-    # Locate espeak-ng with pkg-config
-    find_package(PkgConfig)
-    pkg_check_modules(ESPEAK_NG REQUIRED espeak-ng<2)
-else()
-    if(NOT DEFINED ESPEAK_NG_DIR)
-        # Download from https://github.com/rhasspy/espeak-ng
-        set(ESPEAK_NG_DIR "${CMAKE_CURRENT_LIST_DIR}/lib/espeak-ng")
-        if(NOT EXISTS "${ESPEAK_NG_DIR}")
-            if(NOT DEFINED ESPEAK_NG_RELEASE)
-                set(ESPEAK_NG_RELEASE "2023.9.7-4")
-            endif()
+if(NOT DEFINED ESPEAK_NG_DIR)
+    set(ESPEAK_NG_DIR "${CMAKE_CURRENT_BINARY_DIR}/espeak_ng_install")
 
-            if(WIN32)
-                # Windows x86-64
-                set(ESPEAK_NG_FILENAME "windows_amd64.zip")
-            else()
-                if(CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64)
-                    # Linux x86-64
-                    set(ESPEAK_NG_FILENAME "linux_x64.tar.gz")
-                elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
-                    # Linux ARM 64-bit
-                    set(ESPEAK_NG_FILENAME "linux_aarch64.tar.gz")
-                elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL armv7l)
-                    # Linux ARM 32-bit
-                    set(ESPEAK_NG_FILENAME "linux_armv7.tar.gz")
-                else()
-                    message(FATAL_ERROR "Unsupported architecture for rhasspy espeak-ng")
-                endif()
-            endif()
-
-            set(ESPEAK_NG_ARCHIVE "espeak-ng_${ESPEAK_NG_RELEASE}_${ESPEAK_NG_FILENAME}")
-
-            if(NOT EXISTS "download/${ESPEAK_NG_ARCHIVE}")
-                set(ESPEAK_NG_URL "https://github.com/rhasspy/espeak-ng/releases/download/${ESPEAK_NG_RELEASE}/${ESPEAK_NG_FILENAME}")
-                message("Downloading ${ESPEAK_NG_URL}")
-                file(DOWNLOAD "${ESPEAK_NG_URL}" "download/${ESPEAK_NG_ARCHIVE}")
-            endif()
-
-            # Extract .zip or .tar.gz to lib/espeak-ng
-            file(ARCHIVE_EXTRACT INPUT "download/${ESPEAK_NG_ARCHIVE}" DESTINATION "${CMAKE_CURRENT_LIST_DIR}/lib")
-        endif()
-    endif()
-
-    set(ESPEAK_NG_INCLUDE_DIRS "${ESPEAK_NG_DIR}/include")
-    set(ESPEAK_NG_LIBRARY_DIRS "${ESPEAK_NG_DIR}/lib")
-    set(ESPEAK_NG_LIBRARIES "espeak-ng")
+    include(ExternalProject)
+    ExternalProject_Add(
+        espeak_ng_external
+        URL "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.zip"
+        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ESPEAK_NG_DIR}
+        CMAKE_ARGS -DUSE_ASYNC:BOOL=OFF
+        CMAKE_ARGS -DBUILD_SHARED_LIBS:BOOL=ON
+        CMAKE_ARGS -DUSE_MBROLA:BOOL=OFF
+        CMAKE_ARGS -DUSE_LIBSONIC:BOOL=OFF
+        CMAKE_ARGS -DUSE_LIBPCAUDIO:BOOL=OFF
+        CMAKE_ARGS -DUSE_KLATT:BOOL=OFF
+        CMAKE_ARGS -DUSE_SPEECHPLAYER:BOOL=OFF
+        CMAKE_ARGS -DEXTRA_cmn:BOOL=ON
+        CMAKE_ARGS -DEXTRA_ru:BOOL=ON
+    )
+    add_dependencies(piper_phonemize espeak_ng_external)
 endif()
 
+
 # ---- Declare library ----
-
-add_library(
-    piper_phonemize SHARED
-    src/phonemize.cpp
-    src/phoneme_ids.cpp
-    src/tashkeel.cpp
-    src/shared.cpp
-)
-
-set_target_properties(piper_phonemize PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR})
 
 target_include_directories(
     piper_phonemize PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    ${ESPEAK_NG_INCLUDE_DIRS}
+    ${ESPEAK_NG_DIR}/include
     ${ONNXRUNTIME_ROOTDIR}/include
 )
 
 target_link_directories(
     piper_phonemize PUBLIC
-    ${ESPEAK_NG_LIBRARY_DIRS}
+    ${ESPEAK_NG_DIR}/lib
     ${ONNXRUNTIME_ROOTDIR}/lib
 )
 
 target_link_libraries(
     piper_phonemize
-    ${ESPEAK_NG_LIBRARIES}
+    espeak-ng
     onnxruntime
-)
-
-target_compile_options(
-    piper_phonemize PUBLIC
-    ${ESPEAK_NG_CFLAGS_OTHER}
 )
 
 target_compile_features(piper_phonemize PUBLIC cxx_std_17)
@@ -174,21 +142,17 @@ target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
 target_include_directories(
     piper_phonemize_exe PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    ${ESPEAK_NG_INCLUDE_DIRS}
+    ${ESPEAK_NG_DIR}/include
 )
 
 target_link_directories(
     piper_phonemize_exe PUBLIC
-    ${ESPEAK_NG_LIBRARY_DIRS}
+    ${ESPEAK_NG_DIR}/lib
 )
 
 target_link_libraries(piper_phonemize_exe PUBLIC
     piper_phonemize
-    ${ESPEAK_NG_LIBRARIES})
-
-target_compile_options(
-    piper_phonemize_exe PUBLIC
-    ${ESPEAK_NG_CFLAGS_OTHER}
+    espeak-ng
 )
 
 # ---- Declare install targets ----
