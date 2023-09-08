@@ -183,8 +183,8 @@ target_link_directories(
 )
 
 target_link_libraries(piper_phonemize_exe PUBLIC
-                      piper_phonemize
-                      ${ESPEAK_NG_LIBRARIES})
+    piper_phonemize
+    ${ESPEAK_NG_LIBRARIES})
 
 target_compile_options(
     piper_phonemize_exe PUBLIC
