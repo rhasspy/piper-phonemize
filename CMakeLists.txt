@@ -36,7 +36,7 @@ endif()
 # ---- onnxruntime ---
 
 # Look for onnxruntime files in <root>/lib
-if(NOT DEFINED ONNXRUNTIME_ROOTDIR)
+if(NOT DEFINED ONNXRUNTIME_DIR)
     if(NOT DEFINED ONNXRUNTIME_VERSION)
         set(ONNXRUNTIME_VERSION "1.14.1")
     endif()
@@ -68,9 +68,9 @@ if(NOT DEFINED ONNXRUNTIME_ROOTDIR)
     endif()
 
     set(ONNXRUNTIME_FILENAME "${ONNXRUNTIME_PREFIX}.${ONNXRUNTIME_EXT}")
-    set(ONNXRUNTIME_ROOTDIR "${CMAKE_CURRENT_LIST_DIR}/lib/${ONNXRUNTIME_PREFIX}")
+    set(ONNXRUNTIME_DIR "${CMAKE_CURRENT_LIST_DIR}/lib/${ONNXRUNTIME_PREFIX}")
 
-    if(NOT EXISTS "${ONNXRUNTIME_ROOTDIR}")
+    if(NOT EXISTS "${ONNXRUNTIME_DIR}")
         if(NOT EXISTS "download/${ONNXRUNTIME_FILENAME}")
             # Download onnxruntime release
             message("Downloading ${ONNXRUNTIME_URL}")
@@ -112,13 +112,13 @@ target_include_directories(
     piper_phonemize PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     ${ESPEAK_NG_DIR}/include
-    ${ONNXRUNTIME_ROOTDIR}/include
+    ${ONNXRUNTIME_DIR}/include
 )
 
 target_link_directories(
     piper_phonemize PUBLIC
     ${ESPEAK_NG_DIR}/lib
-    ${ONNXRUNTIME_ROOTDIR}/lib
+    ${ONNXRUNTIME_DIR}/lib
 )
 
 target_link_libraries(
@@ -156,6 +156,7 @@ target_link_libraries(piper_phonemize_exe PUBLIC
 )
 
 # ---- Declare install targets ----
+include(GNUInstallDirs)
 
 install(
     TARGETS piper_phonemize
@@ -171,3 +172,16 @@ install(
 install(
     TARGETS piper_phonemize_exe
     ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# Dependencies
+install(
+    DIRECTORY ${ESPEAK_NG_DIR}/
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+install(
+    DIRECTORY ${ONNXRUNTIME_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(
+    DIRECTORY ${ONNXRUNTIME_DIR}/lib/
+    DESTINATION ${CMAKE_INSTALL_LIBDIR})
