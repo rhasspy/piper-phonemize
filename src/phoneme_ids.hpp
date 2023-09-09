@@ -32,9 +32,10 @@ struct PhonemeIdConfig {
   std::shared_ptr<PhonemeIdMap> phonemeIdMap;
 };
 
-extern const size_t MAX_PHONEMES;
-extern PhonemeIdMap DEFAULT_PHONEME_ID_MAP;
-extern std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET;
+extern PIPERPHONEMIZE_EXPORT const size_t MAX_PHONEMES;
+extern PIPERPHONEMIZE_EXPORT PhonemeIdMap DEFAULT_PHONEME_ID_MAP;
+extern PIPERPHONEMIZE_EXPORT std::map<std::string, PhonemeIdMap>
+    DEFAULT_ALPHABET;
 
 PIPERPHONEMIZE_EXPORT void
 phonemes_to_ids(const std::vector<Phoneme> &phonemes, PhonemeIdConfig &config,

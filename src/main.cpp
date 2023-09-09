@@ -24,7 +24,7 @@ using json = nlohmann::json;
 enum PhonemeType { eSpeakPhonemes, TextPhonemes };
 
 struct RunConfig {
-  std::string language;
+  std::string language = "";
   PhonemeType phonemeType = eSpeakPhonemes;
   std::optional<std::filesystem::path> eSpeakDataPath;
   std::optional<std::filesystem::path> tashkeelModelPath;

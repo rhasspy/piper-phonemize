@@ -20,7 +20,8 @@ add_library(
 
 set_target_properties(piper_phonemize PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR})
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+)
 
 if(WIN32)
     # Force compiler to use UTF-8 for IPA constants
@@ -155,6 +156,34 @@ target_link_libraries(piper_phonemize_exe PUBLIC
     espeak-ng
 )
 
+# ---- Declare test ----
+
+include(CTest)
+enable_testing()
+add_executable(test_piper_phonemize src/test.cpp)
+add_test(
+    NAME test_piper_phonemize
+    COMMAND test_piper_phonemize "${ESPEAK_NG_DIR}/share/espeak-ng-data" "${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort"
+)
+
+target_compile_features(test_piper_phonemize PUBLIC cxx_std_17)
+
+target_include_directories(
+    test_piper_phonemize PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+    ${ESPEAK_NG_DIR}/include
+)
+
+target_link_directories(
+    test_piper_phonemize PUBLIC
+    ${ESPEAK_NG_DIR}/lib
+)
+
+target_link_libraries(test_piper_phonemize PUBLIC
+    piper_phonemize
+    espeak-ng
+)
+
 # ---- Declare install targets ----
 
 include(GNUInstallDirs)
@@ -173,6 +202,10 @@ install(
 install(
     TARGETS piper_phonemize_exe
     ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(
+    FILES ${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort
+    TYPE DATA)
 
 # Dependencies
 install(

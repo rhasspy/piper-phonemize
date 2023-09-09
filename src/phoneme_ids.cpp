@@ -6,8 +6,8 @@
 
 namespace piper {
 
-const size_t MAX_PHONEMES = 256;
-PhonemeIdMap DEFAULT_PHONEME_ID_MAP = {
+PIPERPHONEMIZE_EXPORT const size_t MAX_PHONEMES = 256;
+PIPERPHONEMIZE_EXPORT PhonemeIdMap DEFAULT_PHONEME_ID_MAP = {
     {U'_', {0}},
     {U'^', {1}},
     {U'$', {2}},
@@ -179,7 +179,7 @@ PhonemeIdMap DEFAULT_PHONEME_ID_MAP = {
 };
 
 // language -> phoneme -> [id, ...]
-std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET = {
+PIPERPHONEMIZE_EXPORT std::map<std::string, PhonemeIdMap> DEFAULT_ALPHABET = {
     // Ukrainian
     {"uk",
      {
