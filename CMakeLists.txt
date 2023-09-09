@@ -29,7 +29,7 @@ if(WIN32)
 
 else()
     # Linux flags
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$$ORIGIN'")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
     string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 endif()
 
@@ -156,6 +156,7 @@ target_link_libraries(piper_phonemize_exe PUBLIC
 )
 
 # ---- Declare install targets ----
+
 include(GNUInstallDirs)
 
 install(
