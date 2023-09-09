@@ -10,6 +10,17 @@ project(
     LANGUAGES CXX
 )
 
+if(MSVC)
+    # Force compiler to use UTF-8 for IPA constants
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
+elseif(NOT APPLE)
+    # Linux flags
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
+    string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
+endif()
+
 add_library(
     piper_phonemize SHARED
     src/phonemize.cpp
@@ -22,17 +33,6 @@ set_target_properties(piper_phonemize PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
-
-if(WIN32)
-    # Force compiler to use UTF-8 for IPA constants
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-
-else()
-    # Linux flags
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
-    string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
-endif()
 
 # ---- onnxruntime ---
 
@@ -86,11 +86,12 @@ endif()
 # ---- espeak-ng ---
 
 if(NOT DEFINED ESPEAK_NG_DIR)
-    set(ESPEAK_NG_DIR "${CMAKE_CURRENT_BINARY_DIR}/espeak_ng_install")
+    set(ESPEAK_NG_DIR "${CMAKE_CURRENT_BINARY_DIR}/ei")
 
     include(ExternalProject)
     ExternalProject_Add(
         espeak_ng_external
+        PREFIX "${CMAKE_CURRENT_BINARY_DIR}/e"
         URL "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.zip"
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ESPEAK_NG_DIR}
         CMAKE_ARGS -DUSE_ASYNC:BOOL=OFF
@@ -160,7 +161,7 @@ target_link_libraries(piper_phonemize_exe PUBLIC
 
 include(CTest)
 enable_testing()
-add_executable(test_piper_phonemize src/test.cpp)
+add_executable(test_piper_phonemize src/test.cpp src/phoneme_ids.cpp)
 add_test(
     NAME test_piper_phonemize
     COMMAND test_piper_phonemize "${ESPEAK_NG_DIR}/share/espeak-ng-data" "${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort"
