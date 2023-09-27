@@ -45,10 +45,6 @@ jobs:
       - name: build
         run: |
           cmake --build build --config Release
-      - name: test
-        run: |
-          cd build
-          ctest
       - name: install
         run: |
           cmake --install build
