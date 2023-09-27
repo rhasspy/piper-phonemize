@@ -45,9 +45,13 @@ jobs:
       - name: build
         run: |
           cmake --build build --config Release
+      - name: test
+        run: |
+          cd build
+          ctest
       - name: install
         run: |
           cmake --install build
-      - name: test
+      - name: check
         run: |
-          _install/piper-phonemize/bin/piper-phonemize --help
+          _install/piper-phonemize/bin/piper-phonemize_exe --help
