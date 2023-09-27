@@ -46,6 +46,18 @@ if(NOT DEFINED ONNXRUNTIME_DIR)
         # Windows x86-64
         set(ONNXRUNTIME_PREFIX "onnxruntime-win-x64-${ONNXRUNTIME_VERSION}")
         set(ONNXRUNTIME_EXT "zip")
+    elseif (APPLE)
+        if(CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64)
+            # MacOS x86-64
+            set(ONNXRUNTIME_PREFIX "onnxruntime-osx-x86_64-${ONNXRUNTIME_VERSION}")
+        elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL arm64)
+            # MacOS Apple Silicon
+            set(ONNXRUNTIME_PREFIX "onnxruntime-osx-arm64-${ONNXRUNTIME_VERSION}")
+        else()
+            message(FATAL_ERROR "Unsupported architecture for onnxruntime")
+        endif()
+
+        set(ONNXRUNTIME_EXT "tgz")
     else()
         if(CMAKE_SYSTEM_PROCESSOR STREQUAL x86_64)
             # Linux x86-64
