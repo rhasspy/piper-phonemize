@@ -50,4 +50,4 @@ jobs:
           cmake --install build
       - name: check
         run: |
-          _install/piper-phonemize/bin/piper-phonemize_exe --help
+          _install/piper-phonemize/bin/piper_phonemize_exe --help
