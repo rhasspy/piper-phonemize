@@ -166,6 +166,9 @@ endif()
 
 target_compile_features(piper_phonemize PUBLIC cxx_std_17)
 
+set(pc_requires_private "espeak-ng libonnxruntime")
+configure_file(piper_phonemize.pc.in piper_phonemize.pc @ONLY)
+
 # ---- Declare executable ----
 
 add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
@@ -248,6 +251,10 @@ install(
     FILES_MATCHING
     PATTERN "*.h"
     PATTERN "*.hpp")
+
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/piper_phonemize.pc
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 install(
     TARGETS piper_phonemize_exe
