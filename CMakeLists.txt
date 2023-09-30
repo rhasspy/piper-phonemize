@@ -255,7 +255,7 @@ install(
 
 install(
     FILES ${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort
-    TYPE DATA)
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/piper-phonemize)
 
 # Dependencies
 if(BUILD_EXTERNAL)
