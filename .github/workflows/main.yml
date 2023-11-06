@@ -30,12 +30,25 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        arch: [x64, aarch64, armv7]
+        arch: [x86_64, aarch64, armv7]
+        sys: [linux]
+        include:
+          - arch: x86_64
+            ccarch: x86_64
+            archproc: x86_64
+          - arch: aarch64
+            ccarch: aarch64
+            archproc: aarch64
+          - arch: armv7
+            ccarch: arm
+            archproc: armv7l
     steps:
       - uses: actions/checkout@v3
       - name: configure
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }}
+          export CC="${{ matrix.ccarch }}-${{ matrix.sys }}-gcc-12"
+          export CXX="${{ matrix.ccarch }}-${{ matrix.sys }}-g++-12"
+          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.archproc }}
       - name: build
         run: |
           cmake --build build --config Release
@@ -55,67 +68,67 @@ jobs:
           asset_path: _install/piper-phonemize_linux_${{ matrix.arch }}.tar.gz
           asset_name: piper-phonemize_linux_${{ matrix.arch }}.tar.gz
           asset_content_type: application/octet-stream
-  build_windows:
-    runs-on: windows-latest
-    name: "windows build: ${{ matrix.arch }}"
-    needs: create_release # we need to know the upload URL
-    strategy:
-      fail-fast: true
-      matrix:
-        arch: [x64]
-    steps:
-      - uses: actions/checkout@v3
-      - name: configure
-        run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: package
-        run: |
-          cd _install
-          Compress-Archive -LiteralPath piper-phonemize -DestinationPath piper-phonemize_windows_amd64.zip
-      - name: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: _install/piper-phonemize_windows_amd64.zip
-          asset_name: piper-phonemize_windows_amd64.zip
-          asset_content_type: application/zip
-  build_macos:
-    runs-on: macos-latest
-    name: "mac build: ${{ matrix.arch }}"
-    needs: create_release # we need to know the upload URL
-    strategy:
-      fail-fast: true
-      matrix:
-        arch: [x64, aarch64]
-    steps:
-      - uses: actions/checkout@v3
-      - name: configure
-        run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: package
-        run: |
-          cd _install && \
-          tar -czf piper-phonemize_macos_${{ matrix.arch }}.tar.gz piper-phonemize/
-      - name: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: _install/piper-phonemize_macos_${{ matrix.arch }}.tar.gz
-          asset_name: piper-phonemize_macos_${{ matrix.arch }}.tar.gz
-          asset_content_type: application/octet-stream
+  # build_windows:
+  #   runs-on: windows-latest
+  #   name: "windows build: ${{ matrix.arch }}"
+  #   needs: create_release # we need to know the upload URL
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       arch: [x64]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: configure
+  #       run: |
+  #         cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+  #     - name: build
+  #       run: |
+  #         cmake --build build --config Release
+  #     - name: install
+  #       run: |
+  #         cmake --install build
+  #     - name: package
+  #       run: |
+  #         cd _install
+  #         Compress-Archive -LiteralPath piper-phonemize -DestinationPath piper-phonemize_windows_amd64.zip
+  #     - name: upload
+  #       uses: actions/upload-release-asset@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       with:
+  #         upload_url: ${{ needs.create_release.outputs.upload_url }}
+  #         asset_path: _install/piper-phonemize_windows_amd64.zip
+  #         asset_name: piper-phonemize_windows_amd64.zip
+  #         asset_content_type: application/zip
+  # build_macos:
+  #   runs-on: macos-latest
+  #   name: "mac build: ${{ matrix.arch }}"
+  #   needs: create_release # we need to know the upload URL
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       arch: [x64, aarch64]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: configure
+  #       run: |
+  #         cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+  #     - name: build
+  #       run: |
+  #         cmake --build build --config Release
+  #     - name: install
+  #       run: |
+  #         cmake --install build
+  #     - name: package
+  #       run: |
+  #         cd _install && \
+  #         tar -czf piper-phonemize_macos_${{ matrix.arch }}.tar.gz piper-phonemize/
+  #     - name: upload
+  #       uses: actions/upload-release-asset@v1
+  #       env:
+  #         GITHUB_TOKEN: ${{ github.token }}
+  #       with:
+  #         upload_url: ${{ needs.create_release.outputs.upload_url }}
+  #         asset_path: _install/piper-phonemize_macos_${{ matrix.arch }}.tar.gz
+  #         asset_name: piper-phonemize_macos_${{ matrix.arch }}.tar.gz
+  #         asset_content_type: application/octet-stream
