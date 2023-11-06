@@ -44,6 +44,10 @@ jobs:
             archproc: armv7l
     steps:
       - uses: actions/checkout@v3
+      - name: build-deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install g++-12-${{ matrix.ccarch }}-linux-gnu
       - name: configure
         run: |
           export CC="${{ matrix.ccarch }}-${{ matrix.sys }}-gcc-12"
