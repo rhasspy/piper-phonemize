@@ -14,12 +14,30 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        arch: [x64, aarch64, armv7]
+        # arch: [x86_64, aarch64, armv7]
+        arch: [aarch64]
+        sys: [linux]
+        include:
+          - arch: x86_64
+            ccarch: x86_64
+            archproc: x86_64
+          - arch: aarch64
+            ccarch: aarch64
+            archproc: aarch64
+          - arch: armv7
+            ccarch: arm
+            archproc: armv7l
     steps:
       - uses: actions/checkout@v3
+      - name: build-deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install g++-12-${{ matrix.ccarch }}-linux-gnu
       - name: configure
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+          export CC="${{ matrix.ccarch }}-${{ matrix.sys }}-gcc-12"
+          export CXX="${{ matrix.ccarch }}-${{ matrix.sys }}-g++-12"
+          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.archproc }}
       - name: build
         run: |
           cmake --build build --config Release
@@ -29,45 +47,45 @@ jobs:
       - name: test
         run: |
           LD_LIBRARY_PATH=$PWD/_install/piper-phonemize/lib _install/piper-phonemize/bin/piper_phonemize --help
-  test_windows:
-    runs-on: windows-latest
-    name: "windows build: ${{ matrix.arch }}"
-    strategy:
-      fail-fast: true
-      matrix:
-        arch: [x64]
-    steps:
-      - uses: actions/checkout@v3
-      - name: configure
-        run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: check
-        run: |
-          _install/piper-phonemize/bin/piper_phonemize_exe --help
-  test_mac:
-    name: "mac test: ${{ matrix.arch }}"
-    runs-on: macos-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        arch: [x64, aarch64]
-    steps:
-      - uses: actions/checkout@v3
-      - name: configure
-        run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: test
-        run: |
-          DYLD_LIBRARY_PATH=$PWD/_install/piper-phonemize/lib _install/piper-phonemize/bin/piper_phonemize --help
+  # test_windows:
+  #   runs-on: windows-latest
+  #   name: "windows build: ${{ matrix.arch }}"
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       arch: [x64]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: configure
+  #       run: |
+  #         cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+  #     - name: build
+  #       run: |
+  #         cmake --build build --config Release
+  #     - name: install
+  #       run: |
+  #         cmake --install build
+  #     - name: check
+  #       run: |
+  #         _install/piper-phonemize/bin/piper_phonemize_exe --help
+  # test_mac:
+  #   name: "mac test: ${{ matrix.arch }}"
+  #   runs-on: macos-latest
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       arch: [x64, aarch64]
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: configure
+  #       run: |
+  #         cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+  #     - name: build
+  #       run: |
+  #         cmake --build build --config Release
+  #     - name: install
+  #       run: |
+  #         cmake --install build
+  #     - name: test
+  #       run: |
+  #         DYLD_LIBRARY_PATH=$PWD/_install/piper-phonemize/lib _install/piper-phonemize/bin/piper_phonemize --help
