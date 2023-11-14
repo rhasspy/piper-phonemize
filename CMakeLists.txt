@@ -115,6 +115,7 @@ if(NOT DEFINED ESPEAK_NG_DIR)
         CMAKE_ARGS -DUSE_SPEECHPLAYER:BOOL=OFF
         CMAKE_ARGS -DEXTRA_cmn:BOOL=ON
         CMAKE_ARGS -DEXTRA_ru:BOOL=ON
+        CMAKE_ARGS -DCMAKE_C_FLAGS="-D_FILE_OFFSET_BITS=64"
     )
     add_dependencies(piper_phonemize espeak_ng_external)
 endif()
