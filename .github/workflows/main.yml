@@ -34,10 +34,6 @@ jobs:
       - name: build
         run: |
           docker buildx build . --platform linux/amd64,linux/arm64,linux/arm/v7 --output 'type=local,dest=dist'
-      - name: package
-        run: |
-          cd _install && \
-          tar -czf piper-phonemize_linux_${{ matrix.arch }}.tar.gz piper-phonemize/
       - name: upload-amd64
         uses: actions/upload-release-asset@v1
         env:
