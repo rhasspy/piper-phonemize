@@ -9,44 +9,15 @@ on:
 
 jobs:
   test_linux:
-    name: "linux test: ${{ matrix.arch }}"
-    runs-on: ubuntu-20.04 # use older version on purpose for GLIBC
-    strategy:
-      fail-fast: true
-      matrix:
-        # arch: [x86_64, aarch64, armv7]
-        arch: [aarch64]
-        sys: [linux]
-        include:
-          - arch: x86_64
-            ccarch: x86_64
-            archproc: x86_64
-          - arch: aarch64
-            ccarch: aarch64
-            archproc: aarch64
-          - arch: armv7
-            ccarch: arm
-            archproc: armv7l
+    name: "linux test"
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: build-deps
-        run: |
-          sudo apt-get update
-          sudo apt-get install g++-12-${{ matrix.ccarch }}-linux-gnu
-      - name: configure
-        run: |
-          export CC="${{ matrix.ccarch }}-${{ matrix.sys }}-gcc-12"
-          export CXX="${{ matrix.ccarch }}-${{ matrix.sys }}-g++-12"
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.archproc }}
+      - uses: docker/setup-qemu-action@v2
+      - uses: docker/setup-buildx-action@v2
       - name: build
         run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: test
-        run: |
-          LD_LIBRARY_PATH=$PWD/_install/piper-phonemize/lib _install/piper-phonemize/bin/piper_phonemize --help
+          docker buildx build . --platform linux/amd64,linux/arm64,linux/arm/v7 --output 'type=local,dest=dist'
   # test_windows:
   #   runs-on: windows-latest
   #   name: "windows build: ${{ matrix.arch }}"
