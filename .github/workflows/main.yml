@@ -58,7 +58,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: dist/linux_armv7/piper-phonemize_armv7.tar.gz
+          asset_path: dist/linux_arm_v7/piper-phonemize_armv7.tar.gz
           asset_name: piper-phonemize_linux_armv7l.tar.gz
           asset_content_type: application/octet-stream
   build_windows:
