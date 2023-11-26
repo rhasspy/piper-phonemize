@@ -21,8 +21,10 @@ elseif(NOT APPLE)
     string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 endif()
 
+option(BUILD_SHARED_LIBS "Whether to build shared libraries" ON)
+
 add_library(
-    piper_phonemize SHARED
+    piper_phonemize
     src/phonemize.cpp
     src/phoneme_ids.cpp
     src/tashkeel.cpp
@@ -107,7 +109,7 @@ if(NOT DEFINED ESPEAK_NG_DIR)
         URL "https://github.com/rhasspy/espeak-ng/archive/refs/heads/master.zip"
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ESPEAK_NG_DIR}
         CMAKE_ARGS -DUSE_ASYNC:BOOL=OFF
-        CMAKE_ARGS -DBUILD_SHARED_LIBS:BOOL=ON
+        CMAKE_ARGS -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
         CMAKE_ARGS -DUSE_MBROLA:BOOL=OFF
         CMAKE_ARGS -DUSE_LIBSONIC:BOOL=OFF
         CMAKE_ARGS -DUSE_LIBPCAUDIO:BOOL=OFF
@@ -141,6 +143,10 @@ target_link_libraries(
     espeak-ng
     onnxruntime
 )
+
+if(NOT BUILD_SHARED_LIBS)
+  target_link_libraries(piper_phonemize ucd)
+endif()
 
 target_compile_features(piper_phonemize PUBLIC cxx_std_17)
 
