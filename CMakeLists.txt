@@ -17,7 +17,7 @@ if(MSVC)
 
 elseif(NOT APPLE)
     # Linux flags
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra ")
     string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 endif()
 
