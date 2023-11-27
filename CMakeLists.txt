@@ -31,11 +31,6 @@ add_library(
     src/shared.cpp
 )
 
-set_target_properties(piper_phonemize PROPERTIES
-    VERSION ${PROJECT_VERSION}
-    SOVERSION ${PROJECT_VERSION_MAJOR}
-)
-
 # ---- onnxruntime ---
 
 # Look for onnxruntime files in <root>/lib
