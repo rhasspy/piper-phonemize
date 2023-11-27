@@ -22,6 +22,8 @@ elseif(NOT APPLE)
 endif()
 
 option(BUILD_SHARED_LIBS "Whether to build shared libraries" ON)
+option(BUILD_PIPER_PHONMIZE_EXE "Whether to build piper_phonemize_exe" ON)
+option(BUILD_PIPER_PHONMIZE_TESTS "Whether to build tests" ON)
 
 add_library(
     piper_phonemize
@@ -127,11 +129,25 @@ target_include_directories(
     ${ONNXRUNTIME_DIR}/include
 )
 
+if(DEFINED ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR})
+  target_include_directories(
+      piper_phonemize PUBLIC
+      $ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}
+  )
+endif()
+
 target_link_directories(
     piper_phonemize PUBLIC
     ${ESPEAK_NG_DIR}/lib
     ${ONNXRUNTIME_DIR}/lib
 )
+
+if(DEFINED ENV{SHERPA_ONNXRUNTIME_LIB_DIR})
+  target_link_directories(
+      piper_phonemize PUBLIC
+      $ENV{SHERPA_ONNXRUNTIME_LIB_DIR}
+  )
+endif()
 
 target_link_libraries(
     piper_phonemize
@@ -145,59 +161,63 @@ endif()
 
 target_compile_features(piper_phonemize PUBLIC cxx_std_17)
 
-# ---- Declare executable ----
+if(BUILD_PIPER_PHONMIZE_EXE)
+  # ---- Declare executable ----
 
-add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
+  add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
 
-if(NOT WIN32)
-    set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
+  if(NOT WIN32)
+      set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
+  endif()
+
+  target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
+
+  target_include_directories(
+      piper_phonemize_exe PUBLIC
+      "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+      ${ESPEAK_NG_DIR}/include
+  )
+
+  target_link_directories(
+      piper_phonemize_exe PUBLIC
+      ${ESPEAK_NG_DIR}/lib
+  )
+
+  target_link_libraries(piper_phonemize_exe PUBLIC
+      piper_phonemize
+      espeak-ng
+  )
 endif()
 
-target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
+if(BUILD_PIPER_PHONMIZE_TESTS)
+  # ---- Declare test ----
 
-target_include_directories(
-    piper_phonemize_exe PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    ${ESPEAK_NG_DIR}/include
-)
+  include(CTest)
+  enable_testing()
+  add_executable(test_piper_phonemize src/test.cpp src/phoneme_ids.cpp)
+  add_test(
+      NAME test_piper_phonemize
+      COMMAND test_piper_phonemize "${ESPEAK_NG_DIR}/share/espeak-ng-data" "${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort"
+  )
 
-target_link_directories(
-    piper_phonemize_exe PUBLIC
-    ${ESPEAK_NG_DIR}/lib
-)
+  target_compile_features(test_piper_phonemize PUBLIC cxx_std_17)
 
-target_link_libraries(piper_phonemize_exe PUBLIC
-    piper_phonemize
-    espeak-ng
-)
+  target_include_directories(
+      test_piper_phonemize PUBLIC
+      "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+      ${ESPEAK_NG_DIR}/include
+  )
 
-# ---- Declare test ----
+  target_link_directories(
+      test_piper_phonemize PUBLIC
+      ${ESPEAK_NG_DIR}/lib
+  )
 
-include(CTest)
-enable_testing()
-add_executable(test_piper_phonemize src/test.cpp src/phoneme_ids.cpp)
-add_test(
-    NAME test_piper_phonemize
-    COMMAND test_piper_phonemize "${ESPEAK_NG_DIR}/share/espeak-ng-data" "${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort"
-)
-
-target_compile_features(test_piper_phonemize PUBLIC cxx_std_17)
-
-target_include_directories(
-    test_piper_phonemize PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    ${ESPEAK_NG_DIR}/include
-)
-
-target_link_directories(
-    test_piper_phonemize PUBLIC
-    ${ESPEAK_NG_DIR}/lib
-)
-
-target_link_libraries(test_piper_phonemize PUBLIC
-    piper_phonemize
-    espeak-ng
-)
+  target_link_libraries(test_piper_phonemize PUBLIC
+      piper_phonemize
+      espeak-ng
+  )
+endif()
 
 # ---- Declare install targets ----
 
@@ -214,9 +234,11 @@ install(
     PATTERN "*.h"
     PATTERN "*.hpp")
 
-install(
-    TARGETS piper_phonemize_exe
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(BUILD_PIPER_PHONMIZE_EXE)
+  install(
+      TARGETS piper_phonemize_exe
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 install(
     FILES ${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort
@@ -227,10 +249,14 @@ install(
     DIRECTORY ${ESPEAK_NG_DIR}/
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-install(
-    DIRECTORY ${ONNXRUNTIME_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(EXISTS ${ONNXRUNTIME_DIR}/include)
+  install(
+      DIRECTORY ${ONNXRUNTIME_DIR}/include/
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 
-install(
-    DIRECTORY ${ONNXRUNTIME_DIR}/lib/
-    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if(EXISTS ${ONNXRUNTIME_DIR}/lib)
+  install(
+      DIRECTORY ${ONNXRUNTIME_DIR}/lib/
+      DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
