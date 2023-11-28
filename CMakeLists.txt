@@ -24,6 +24,7 @@ endif()
 option(BUILD_SHARED_LIBS "Whether to build shared libraries" ON)
 option(BUILD_PIPER_PHONMIZE_EXE "Whether to build piper_phonemize_exe" ON)
 option(BUILD_PIPER_PHONMIZE_TESTS "Whether to build tests" ON)
+option(ENABLE_PIPER_PHONMIZE_SONAME "Whether to enable soname" ON)
 
 add_library(
     piper_phonemize
@@ -33,10 +34,17 @@ add_library(
     src/shared.cpp
 )
 
+if(ENABLE_PIPER_PHONMIZE_SONAME)
+  set_target_properties(piper_phonemize PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+endif()
+
 # ---- onnxruntime ---
 
 # Look for onnxruntime files in <root>/lib
-if(NOT DEFINED ONNXRUNTIME_DIR)
+if(NOT DEFINED ONNXRUNTIME_DIR AND NOT DEFINED ENV{SHERPA_ONNXRUNTIME_LIB_DIR})
     if(NOT DEFINED ONNXRUNTIME_VERSION)
         set(ONNXRUNTIME_VERSION "1.14.1")
     endif()
