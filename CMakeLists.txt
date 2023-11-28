@@ -144,11 +144,19 @@ if(DEFINED ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR})
   )
 endif()
 
-target_link_directories(
-    piper_phonemize PUBLIC
-    ${ESPEAK_NG_DIR}/lib
-    ${ONNXRUNTIME_DIR}/lib
-)
+if(EXISTS ${ESPEAK_NG_DIR}/lib)
+  target_link_directories(
+      piper_phonemize PUBLIC
+      ${ESPEAK_NG_DIR}/lib
+  )
+endif()
+
+if(EXISTS ${ONNXRUNTIME_DIR}/lib)
+  target_link_directories(
+      piper_phonemize PUBLIC
+      ${ONNXRUNTIME_DIR}/lib
+  )
+endif()
 
 if(DEFINED ENV{SHERPA_ONNXRUNTIME_LIB_DIR})
   target_link_directories(
@@ -186,10 +194,12 @@ if(BUILD_PIPER_PHONMIZE_EXE)
       ${ESPEAK_NG_DIR}/include
   )
 
-  target_link_directories(
-      piper_phonemize_exe PUBLIC
-      ${ESPEAK_NG_DIR}/lib
-  )
+  if(EXISTS ${ESPEAK_NG_DIR}/lib)
+    target_link_directories(
+        piper_phonemize_exe PUBLIC
+        ${ESPEAK_NG_DIR}/lib
+    )
+  endif()
 
   target_link_libraries(piper_phonemize_exe PUBLIC
       piper_phonemize
@@ -216,10 +226,12 @@ if(BUILD_PIPER_PHONMIZE_TESTS)
       ${ESPEAK_NG_DIR}/include
   )
 
-  target_link_directories(
-      test_piper_phonemize PUBLIC
-      ${ESPEAK_NG_DIR}/lib
-  )
+  if(EXISTS ${ESPEAK_NG_DIR}/lib)
+    target_link_directories(
+        test_piper_phonemize PUBLIC
+        ${ESPEAK_NG_DIR}/lib
+    )
+  endif()
 
   target_link_libraries(test_piper_phonemize PUBLIC
       piper_phonemize
