@@ -17,27 +17,34 @@ if(MSVC)
 
 elseif(NOT APPLE)
     # Linux flags
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra ")
     string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 endif()
 
+option(BUILD_SHARED_LIBS "Whether to build shared libraries" ON)
+option(BUILD_PIPER_PHONMIZE_EXE "Whether to build piper_phonemize_exe" ON)
+option(BUILD_PIPER_PHONMIZE_TESTS "Whether to build tests" ON)
+option(ENABLE_PIPER_PHONMIZE_SONAME "Whether to enable soname" ON)
+
 add_library(
-    piper_phonemize SHARED
+    piper_phonemize
     src/phonemize.cpp
     src/phoneme_ids.cpp
     src/tashkeel.cpp
     src/shared.cpp
 )
 
-set_target_properties(piper_phonemize PROPERTIES
+if(ENABLE_PIPER_PHONMIZE_SONAME)
+  set_target_properties(piper_phonemize PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION ${PROJECT_VERSION_MAJOR}
-)
+  )
+endif()
 
 # ---- onnxruntime ---
 
 # Look for onnxruntime files in <root>/lib
-if(NOT DEFINED ONNXRUNTIME_DIR)
+if(NOT DEFINED ONNXRUNTIME_DIR AND NOT DEFINED ENV{SHERPA_ONNXRUNTIME_LIB_DIR})
     if(NOT DEFINED ONNXRUNTIME_VERSION)
         set(ONNXRUNTIME_VERSION "1.14.1")
     endif()
@@ -107,7 +114,7 @@ if(NOT DEFINED ESPEAK_NG_DIR)
         URL "https://github.com/rhasspy/espeak-ng/archive/0f65aa301e0d6bae5e172cc74197d32a6182200f.zip"
         CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${ESPEAK_NG_DIR}
         CMAKE_ARGS -DUSE_ASYNC:BOOL=OFF
-        CMAKE_ARGS -DBUILD_SHARED_LIBS:BOOL=ON
+        CMAKE_ARGS -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
         CMAKE_ARGS -DUSE_MBROLA:BOOL=OFF
         CMAKE_ARGS -DUSE_LIBSONIC:BOOL=OFF
         CMAKE_ARGS -DUSE_LIBPCAUDIO:BOOL=OFF
@@ -130,11 +137,33 @@ target_include_directories(
     ${ONNXRUNTIME_DIR}/include
 )
 
-target_link_directories(
-    piper_phonemize PUBLIC
-    ${ESPEAK_NG_DIR}/lib
-    ${ONNXRUNTIME_DIR}/lib
-)
+if(DEFINED ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR})
+  target_include_directories(
+      piper_phonemize PUBLIC
+      $ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}
+  )
+endif()
+
+if(EXISTS ${ESPEAK_NG_DIR}/lib)
+  target_link_directories(
+      piper_phonemize PUBLIC
+      ${ESPEAK_NG_DIR}/lib
+  )
+endif()
+
+if(EXISTS ${ONNXRUNTIME_DIR}/lib)
+  target_link_directories(
+      piper_phonemize PUBLIC
+      ${ONNXRUNTIME_DIR}/lib
+  )
+endif()
+
+if(DEFINED ENV{SHERPA_ONNXRUNTIME_LIB_DIR})
+  target_link_directories(
+      piper_phonemize PUBLIC
+      $ENV{SHERPA_ONNXRUNTIME_LIB_DIR}
+  )
+endif()
 
 target_link_libraries(
     piper_phonemize
@@ -142,61 +171,73 @@ target_link_libraries(
     onnxruntime
 )
 
-target_compile_features(piper_phonemize PUBLIC cxx_std_17)
-
-# ---- Declare executable ----
-
-add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
-
-if(NOT WIN32)
-    set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
+if(NOT BUILD_SHARED_LIBS)
+  target_link_libraries(piper_phonemize ucd)
 endif()
 
-target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
+target_compile_features(piper_phonemize PUBLIC cxx_std_17)
 
-target_include_directories(
-    piper_phonemize_exe PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    ${ESPEAK_NG_DIR}/include
-)
+if(BUILD_PIPER_PHONMIZE_EXE)
+  # ---- Declare executable ----
 
-target_link_directories(
-    piper_phonemize_exe PUBLIC
-    ${ESPEAK_NG_DIR}/lib
-)
+  add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
 
-target_link_libraries(piper_phonemize_exe PUBLIC
-    piper_phonemize
-    espeak-ng
-)
+  if(NOT WIN32)
+      set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
+  endif()
 
-# ---- Declare test ----
+  target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
 
-include(CTest)
-enable_testing()
-add_executable(test_piper_phonemize src/test.cpp src/phoneme_ids.cpp)
-add_test(
-    NAME test_piper_phonemize
-    COMMAND test_piper_phonemize "${ESPEAK_NG_DIR}/share/espeak-ng-data" "${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort"
-)
+  target_include_directories(
+      piper_phonemize_exe PUBLIC
+      "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+      ${ESPEAK_NG_DIR}/include
+  )
 
-target_compile_features(test_piper_phonemize PUBLIC cxx_std_17)
+  if(EXISTS ${ESPEAK_NG_DIR}/lib)
+    target_link_directories(
+        piper_phonemize_exe PUBLIC
+        ${ESPEAK_NG_DIR}/lib
+    )
+  endif()
 
-target_include_directories(
-    test_piper_phonemize PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
-    ${ESPEAK_NG_DIR}/include
-)
+  target_link_libraries(piper_phonemize_exe PUBLIC
+      piper_phonemize
+      espeak-ng
+  )
+endif()
 
-target_link_directories(
-    test_piper_phonemize PUBLIC
-    ${ESPEAK_NG_DIR}/lib
-)
+if(BUILD_PIPER_PHONMIZE_TESTS)
+  # ---- Declare test ----
 
-target_link_libraries(test_piper_phonemize PUBLIC
-    piper_phonemize
-    espeak-ng
-)
+  include(CTest)
+  enable_testing()
+  add_executable(test_piper_phonemize src/test.cpp src/phoneme_ids.cpp)
+  add_test(
+      NAME test_piper_phonemize
+      COMMAND test_piper_phonemize "${ESPEAK_NG_DIR}/share/espeak-ng-data" "${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort"
+  )
+
+  target_compile_features(test_piper_phonemize PUBLIC cxx_std_17)
+
+  target_include_directories(
+      test_piper_phonemize PUBLIC
+      "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+      ${ESPEAK_NG_DIR}/include
+  )
+
+  if(EXISTS ${ESPEAK_NG_DIR}/lib)
+    target_link_directories(
+        test_piper_phonemize PUBLIC
+        ${ESPEAK_NG_DIR}/lib
+    )
+  endif()
+
+  target_link_libraries(test_piper_phonemize PUBLIC
+      piper_phonemize
+      espeak-ng
+  )
+endif()
 
 # ---- Declare install targets ----
 
@@ -213,9 +254,11 @@ install(
     PATTERN "*.h"
     PATTERN "*.hpp")
 
-install(
-    TARGETS piper_phonemize_exe
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(BUILD_PIPER_PHONMIZE_EXE)
+  install(
+      TARGETS piper_phonemize_exe
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()
 
 install(
     FILES ${CMAKE_SOURCE_DIR}/etc/libtashkeel_model.ort
@@ -226,10 +269,14 @@ install(
     DIRECTORY ${ESPEAK_NG_DIR}/
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 
-install(
-    DIRECTORY ${ONNXRUNTIME_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(EXISTS ${ONNXRUNTIME_DIR}/include)
+  install(
+      DIRECTORY ${ONNXRUNTIME_DIR}/include/
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 
-install(
-    DIRECTORY ${ONNXRUNTIME_DIR}/lib/
-    DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if(EXISTS ${ONNXRUNTIME_DIR}/lib)
+  install(
+      DIRECTORY ${ONNXRUNTIME_DIR}/lib/
+      DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif()
