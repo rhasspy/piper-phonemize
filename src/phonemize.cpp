@@ -11,8 +11,8 @@
 namespace piper {
 
 // language -> phoneme -> [phoneme, ...]
-std::map<std::string, PhonemeMap> DEFAULT_PHONEME_MAP = {
-    {"pt-br", {{U'c', {U'k'}}}}};
+std::map<std::string, std::vector<Phoneme>> DEFAULT_PHONEME_MAP = {
+    {"pt-br", {U'c', U'k'}}};
 
 PIPERPHONEMIZE_EXPORT void
 phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
@@ -24,7 +24,9 @@ phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
     throw std::runtime_error("Failed to set eSpeak-ng voice");
   }
 
-  std::shared_ptr<PhonemeMap> phonemeMap;
+  // std::shared_ptr<PhonemeMap> phonemeMap;
+  std::map<Phoneme, std::vector<Phoneme>> *phonemeMap =
+      new std::map<Phoneme, std::vector<Phoneme>>();
   if (config.phonemeMap) {
     phonemeMap = config.phonemeMap;
   } else if (DEFAULT_PHONEME_MAP.count(voice) > 0) {
