@@ -24,7 +24,7 @@ phonemize_eSpeak(std::string text, eSpeakPhonemeConfig &config,
     throw std::runtime_error("Failed to set eSpeak-ng voice");
   }
 
-  // std::shared_ptr<PhonemeMap> phonemeMap;
+  std::shared_ptr<PhonemeMap> phonemeMap;
   std::map<Phoneme, std::vector<Phoneme>> *phonemeMap =
       new std::map<Phoneme, std::vector<Phoneme>>();
   if (config.phonemeMap) {
