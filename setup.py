@@ -28,9 +28,9 @@ class CustomInstallCommand(install):
             return
 
         # Define the source directories for espeak-ng-data and libraries
-        source_data_dir = _ESPEAK_DIR /  "share" / "espeak-ng-data"
-        source_bin_dir = _ESPEAK_DIR / "bin"
-        source_lib_dir = _ESPEAK_DIR / "lib"
+        espeak_ng_data_dir = _ESPEAK_DIR /  "share" / "espeak-ng-data"
+        espeak_ng_dll = _ESPEAK_DIR / "bin" / "espeak-ng.dll"
+        onnxruntime_dll = _ESPEAK_DIR / "lib" / "onnxruntime.dll"
 
         # Define the target directories within the Python environment
         target_data_dir = (
@@ -39,26 +39,14 @@ class CustomInstallCommand(install):
         target_lib_dir = Path(sys.prefix) / "Library" / "bin"
 
         # Copy espeak-ng-data directory
-        self.copy_directory(source_data_dir, target_data_dir)
+        shutil.copytree(espeak_ng_data_dir, target_data_dir, dirs_exist_ok=True)
 
         # Copy espeak-ng library from bin
-        self.copy_directory(source_bin_dir, target_lib_dir, pattern="espeak-ng.dll")
+        shutil.copy(espeak_ng_dll, target_lib_dir)
 
         # Copy ONNX Runtime library
-        self.copy_directory(source_lib_dir, target_lib_dir, pattern="onnxruntime.dll")
+        shutil.copy(onnxruntime_dll, target_lib_dir)
 
-    def copy_directory(self, source, target, pattern="*"):
-        if not source.exists():
-            print(f"Source directory {source} does not exist. Skipping.")
-            return
-
-        if not target.exists():
-            target.mkdir(parents=True, exist_ok=True)
-
-        for item in source.glob(pattern):
-            if item.is_file():
-                shutil.copy(item, target)
-                print(f"Copied {item} to {target}")
 
 ext_modules = [
     Pybind11Extension(
@@ -93,7 +81,7 @@ setup(
     },
     include_package_data=True,
     ext_modules=ext_modules,
-    cmdclass={"build_ext": build_ext},
+    cmdclass={"build_ext": build_ext, "install": CustomInstallCommand, },
     zip_safe=False,
     python_requires=">=3.7",
 )
