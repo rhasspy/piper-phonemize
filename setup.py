@@ -16,45 +16,49 @@ _ONNXRUNTIME_DIR = _LIB_DIR / "onnxruntime"
 __version__ = "1.2.0"
 
 class CustomInstallCommand(install):
-    """Customized setuptools install command to copy espeak-ng-data and specific DLLs."""
+    """Customized setuptools install command to copy espeak-ng-data."""
 
     def run(self):
+        # Call superclass install command
         super().run()
 
-        # This custom installation step is only necessary for Windows
-        if platform.system() == "Windows":
-            self.copy_espeak_ng_data()
-            self.copy_specific_dlls()
+        # Check if the operating system is Windows
+        if platform.system() != "Windows":
+            print("Skipping custom installation steps: not running on Windows")
+            return
 
-    def copy_espeak_ng_data(self):
-        source_data_dir = _ESPEAK_DIR / "share" / "espeak-ng-data"
-        target_data_dir = Path(sys.prefix) / "Lib" / "site-packages" / "piper_phonemize" / "espeak-ng-data"
+        # Define the source directories for espeak-ng-data and libraries
+        source_data_dir = _ESPEAK_DIR /  "share" / "espeak-ng-data"
+        source_bin_dir = _ESPEAK_DIR / "bin"
+        source_lib_dir = _ESPEAK_DIR / "lib"
 
-        if source_data_dir.exists():
-            if target_data_dir.exists():
-                shutil.rmtree(target_data_dir)
-            shutil.copytree(source_data_dir, target_data_dir)
-            print(f"Copied espeak-ng-data to: {target_data_dir}")
+        # Define the target directories within the Python environment
+        target_data_dir = (
+            Path(sys.prefix) / "Lib" / "site-packages" / "piper_phonemize" / "espeak-ng-data"
+        )
+        target_lib_dir = Path(sys.prefix) / "Library" / "bin"
 
-    def copy_specific_dlls(self):
-        dll_files = [
-            _ESPEAK_DIR / "bin" / "espeak-ng.dll",
-            _ESPEAK_DIR / "lib" / "onnxruntime.dll"
-        ]
+        # Copy espeak-ng-data directory
+        self.copy_directory(source_data_dir, target_data_dir)
 
-        target_lib_dir = Path(sys.prefix) / "Library" / "bin" # Windows specific
-        if not target_lib_dir.exists():
-            print(f"Error: {target_lib_dir} does not exist and DLLs were not copied.")
-            exit(1)
+        # Copy espeak-ng library from bin
+        self.copy_directory(source_bin_dir, target_lib_dir, pattern="espeak-ng.dll")
 
-        for dll_path in dll_files:
-            if dll_path.exists():
-                shutil.copy(dll_path, target_lib_dir)
-                print(f"Copied {dll_path} to: {target_lib_dir}")
-            else:
-                print(f"Error: {dll_path} does not exist and was not copied.")
-                exit(1)
+        # Copy ONNX Runtime library
+        self.copy_directory(source_lib_dir, target_lib_dir, pattern="onnxruntime.dll")
 
+    def copy_directory(self, source, target, pattern="*"):
+        if not source.exists():
+            print(f"Source directory {source} does not exist. Skipping.")
+            return
+
+        if not target.exists():
+            target.mkdir(parents=True, exist_ok=True)
+
+        for item in source.glob(pattern):
+            if item.is_file():
+                shutil.copy(item, target)
+                print(f"Copied {item} to {target}")
 
 ext_modules = [
     Pybind11Extension(
