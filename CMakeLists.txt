@@ -16,10 +16,9 @@ if(MSVC)
     # Force compiler to use UTF-8 for IPA constants
     add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
     add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-
 elseif(NOT APPLE)
     # Linux flags
-    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wl,-rpath,'$ORIGIN'")
+    string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra")
     string(APPEND CMAKE_C_FLAGS " -Wall -Wextra")
 endif()
 
@@ -175,6 +174,15 @@ add_executable(piper_phonemize_exe src/main.cpp src/phoneme_ids.cpp)
 
 if(NOT WIN32)
     set_property(TARGET piper_phonemize_exe PROPERTY OUTPUT_NAME piper_phonemize)
+endif()
+
+if (APPLE)
+    set_target_properties(piper_phonemize_exe PROPERTIES
+        MACOSX_RPATH TRUE)
+elseif(NOT MSVC)
+    # Linux
+    set_target_properties(piper_phonemize_exe PROPERTIES
+        BUILD_RPATH_USE_ORIGIN TRUE)
 endif()
 
 target_compile_features(piper_phonemize_exe PUBLIC cxx_std_17)
