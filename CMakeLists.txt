@@ -12,6 +12,11 @@ project(
 
 option(BUILD_EXTERNAL "Build external dependencies" OFF)
 
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(piper_phonemize-config-version.cmake
+                                 VERSION ${piper_phonemize_VERSION}
+                                 COMPATIBILITY SameMajorVersion)
+
 if(MSVC)
     # Force compiler to use UTF-8 for IPA constants
     add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
@@ -263,7 +268,11 @@ include(GNUInstallDirs)
 
 install(
     TARGETS piper_phonemize
+    EXPORT piper_phonemize-config
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(EXPORT piper_phonemize-config
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/piper_phonemize)
 
 install(
     DIRECTORY ${piper_phonemize_SOURCE_DIR}/src/
