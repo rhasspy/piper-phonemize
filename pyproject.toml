@@ -1,6 +1,20 @@
+[project]
+    authors         = [{ name = "Michael Hansen", email = "mike@rhasspy.org" }]
+    dependencies    = ["pybind11>=2.13.6", "setuptools>=75.8.0", "wheel>=0.45.1"]
+    description     = "Phonemization library used by Piper text to speech system"
+    name            = "piper-phonemize"
+    requires-python = ">=3.10"
+    urls            = { "Repository" = "https://github.com/rhasspy/piper-phonemize" }
+    version         = "1.2.0"
+
 [build-system]
-requires = [
-    "setuptools>=42",
-    "pybind11>=2.10.0",
-]
-build-backend = "setuptools.build_meta"
+    build-backend = "scikit_build_core.build"
+    requires      = ["scikit-build-core", "pybind11"]
+
+[tool.setuptools]
+    include-package-data = true
+    packages             = ["piper_phonemize"]
+    zip-safe             = false
+
+    [tool.setuptools.package-data]
+        "piper_phonemize" = ["espeak-ng-data/**/*", "libtashkeel_model.ort"]

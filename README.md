@@ -26,7 +26,6 @@ Arabic diacritization is supported through [libtashkeel](https://github.com/mush
 ``` sh
 echo 'مرحبا' | lib/piper_phonemize -l ar --espeak-data lib/espeak-ng-data/ --tashkeel_model etc/libtashkeel_model.ort
 {"phoneme_ids":[1,0,25,0,120,0,14,0,30,0,43,0,14,0,15,0,121,0,14,0,26,0,2],"phonemes":["m","ˈ","a","r","ħ","a","b","ˌ","a","n"],"processed_text":"مَرْحَبًا","text":"مرحبا"}
-
 ```
 
 See `src/test.cpp` for a C++ example using `libpiper_phonemize`.
@@ -37,14 +36,12 @@ The `piper_phonemize` Python package is built using [pybind11](https://pybind11.
 
 See `src/python_test.py` for a Python example.
 
-
 ## Building
 
 Use Docker:
 
 ``` sh
-docker buildx build . -t piper-phonemize --output 'type=local,dest=dist'
+docker build . -t piper-phonemize --output 'type=local,dest=dist'
 ```
 
 Find library and Python wheels in `dist/`
-
