@@ -7,121 +7,181 @@ on:
       - "*"
 
 jobs:
-  create_release:
-    name: Create release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: false
-          prerelease: false
   build_linux:
-    name: "linux build"
+    name: "Build Linux (multi-arch)"
     runs-on: ubuntu-latest
-    needs: create_release # we need to know the upload URL
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@v2
-      - name: build
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build multi-arch
         run: |
-          docker buildx build . --platform linux/amd64,linux/arm64,linux/arm/v7 --output 'type=local,dest=dist'
-      - name: upload-amd64
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          docker buildx build . \
+            --platform linux/amd64,linux/arm64,linux/arm/v7 \
+            --output 'type=local,dest=dist'
+
+      # Upload each arch artifact as a build artifact
+      - name: Upload Linux x86_64
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: dist/linux_amd64/piper-phonemize_amd64.tar.gz
-          asset_name: piper-phonemize_linux_x86_64.tar.gz
-          asset_content_type: application/octet-stream
-      - name: upload-arm64
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          name: linux-x86_64
+          path: dist/linux_amd64/piper-phonemize_amd64.tar.gz
+
+      - name: Upload Linux aarch64
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: dist/linux_arm64/piper-phonemize_arm64.tar.gz
-          asset_name: piper-phonemize_linux_aarch64.tar.gz
-          asset_content_type: application/octet-stream
-      - name: upload-armv7
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+          name: linux-aarch64
+          path: dist/linux_arm64/piper-phonemize_arm64.tar.gz
+
+      - name: Upload Linux armv7
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: dist/linux_arm_v7/piper-phonemize_armv7.tar.gz
-          asset_name: piper-phonemize_linux_armv7l.tar.gz
-          asset_content_type: application/octet-stream
+          name: linux-armv7
+          path: dist/linux_arm_v7/piper-phonemize_armv7.tar.gz
+
   build_windows:
     runs-on: windows-latest
-    name: "windows build: ${{ matrix.arch }}"
-    needs: create_release # we need to know the upload URL
-    strategy:
-      fail-fast: true
-      matrix:
-        arch: [x64]
+    name: "Build Windows"
     steps:
-      - uses: actions/checkout@v3
-      - name: configure
-        run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: package
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Install
+        run: cmake --install build
+
+      - name: Package
         run: |
           cd _install
           Compress-Archive -LiteralPath piper-phonemize -DestinationPath piper-phonemize_windows_amd64.zip
-      - name: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: _install/piper-phonemize_windows_amd64.zip
-          asset_name: piper-phonemize_windows_amd64.zip
-          asset_content_type: application/zip
+          name: windows-x86_64
+          path: _install/piper-phonemize_windows_amd64.zip
+
   build_macos:
     runs-on: macos-latest
-    name: "mac build: ${{ matrix.arch }}"
-    needs: create_release # we need to know the upload URL
+    name: "Build macOS"
     strategy:
       fail-fast: true
       matrix:
-        arch: [x64, aarch64]
+        arch: [x86_x64, arm64]
     steps:
-      - uses: actions/checkout@v3
-      - name: configure
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Install
+        run: cmake --install build
+
+      - name: Package
         run: |
-          cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
-      - name: build
-        run: |
-          cmake --build build --config Release
-      - name: install
-        run: |
-          cmake --install build
-      - name: package
-        run: |
-          cd _install && \
+          cd _install
           tar -czf piper-phonemize_macos_${{ matrix.arch }}.tar.gz piper-phonemize/
-      - name: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: _install/piper-phonemize_macos_${{ matrix.arch }}.tar.gz
-          asset_name: piper-phonemize_macos_${{ matrix.arch }}.tar.gz
-          asset_content_type: application/octet-stream
+          name: macos-${{ matrix.arch }}
+          path: _install/piper-phonemize_macos_${{ matrix.arch }}.tar.gz
+
+  create_release_and_upload:
+    name: "Create Release and Upload Assets"
+    runs-on: ubuntu-latest
+    needs: [build_linux, build_windows, build_macos]
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up GitHub CLI
+        uses: actions/setup-gh-cli@v2
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./release_assets
+
+      - name: Create or update release using GH CLI
+        shell: bash
+        run: |
+          # Derive tag from the triggering ref (assuming a pushed tag).
+          # e.g. "refs/tags/v1.0.0" -> "v1.0.0"
+          TAG="${GITHUB_REF#refs/tags/}"
+
+          echo "Creating release for tag: $TAG"
+
+          # Create a new release if it does not exist; if it exists, this will error unless we use --draft or similar
+          # You can optionally do `gh release delete $TAG --yes` first if you want to ensure a fresh release.
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes "Automated release for $TAG" \
+            || echo "Release already exists. Uploading assets."
+
+      - name: Upload Linux x86_64
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" \
+            "./release_assets/linux-x86_64/piper-phonemize_amd64.tar.gz" \
+            --label "piper-phonemize_linux_x86_64.tar.gz" \
+            --clobber
+
+      - name: Upload Linux aarch64
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" \
+            "./release_assets/linux-aarch64/piper-phonemize_arm64.tar.gz" \
+            --label "piper-phonemize_linux_aarch64.tar.gz" \
+            --clobber
+
+      - name: Upload Linux armv7
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" \
+            "./release_assets/linux-armv7/piper-phonemize_armv7.tar.gz" \
+            --label "piper-phonemize_linux_armv7l.tar.gz" \
+            --clobber
+
+      - name: Upload Windows x86_64
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" \
+            "./release_assets/windows-x86_64/piper-phonemize_windows_amd64.zip" \
+            --label "piper-phonemize_windows_amd64.zip" \
+            --clobber
+
+      - name: Upload macOS x86_64
+        shell: bash
+        if: matrix.arch == 'x64' || !contains(matrix.arch, 'aarch64')
+        run: |
+          # If you're combining two Mac builds into one matrix, you might need separate steps or conditions.
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" \
+            "./release_assets/macos-x64/piper-phonemize_macos_x64.tar.gz" \
+            --label "piper-phonemize_macos_x64.tar.gz" \
+            --clobber
+
+      - name: Upload macOS aarch64
+        shell: bash
+        if: matrix.arch == 'aarch64'
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload "$TAG" \
+            "./release_assets/macos-aarch64/piper-phonemize_macos_aarch64.tar.gz" \
+            --label "piper-phonemize_macos_aarch64.tar.gz" \
+            --clobber

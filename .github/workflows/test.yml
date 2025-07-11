@@ -6,12 +6,18 @@ on:
 
 jobs:
   test_linux:
-    name: "linux test"
-    runs-on: ubuntu-latest
+    name: "linux test: ${{ matrix.arch }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: ubuntu-24.04-arm
+            arch: aarch64
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@v2
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
       - name: build
         run: |
           docker buildx build . --platform linux/amd64,linux/arm64,linux/arm/v7
@@ -23,7 +29,7 @@ jobs:
       matrix:
         arch: [x64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: configure
         run: |
           cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
@@ -42,9 +48,9 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        arch: [x64, aarch64]
+        arch: [x86_64, arm64]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: configure
         run: |
           cmake -Bbuild -DCMAKE_INSTALL_PREFIX=_install/piper-phonemize
