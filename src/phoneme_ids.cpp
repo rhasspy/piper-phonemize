@@ -1,5 +1,4 @@
 #include <map>
-#include <string>
 #include <vector>
 
 #include "phoneme_ids.hpp"
